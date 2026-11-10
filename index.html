@@ -20,7 +20,7 @@ h1{font-size:32px;margin:0 0 8px}.panel p{color:#b7c6d6;font-size:14px;line-heig
 <script type="module">
 import * as THREE from 'three';
 const status=document.querySelector('#status'),game=document.querySelector('#game');
-let renderer,scene,camera,player,velocity=0,jumpV=0,run=false,yaw=0,pitch=.35,active=null,joyX=0,joyY=0,lastX=0,lastY=0;
+let renderer,scene,camera,player,limbs=[],velocity=0,jumpV=0,run=false,yaw=0,pitch=.35,active=null,joyX=0,joyY=0,lastX=0,lastY=0;
 const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
 function boot(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x87b8d0);
@@ -59,7 +59,7 @@ function boot(){
  const fringe=new THREE.Mesh(new THREE.BoxGeometry(.27,.09,.12),hair);fringe.position.set(0,2.19,.19);player.add(fringe);
  const earGeo=new THREE.SphereGeometry(.055,10,8);for(const x of [-.24,.24]){const ear=new THREE.Mesh(earGeo,skin);ear.position.set(x,2.07,0);player.add(ear);}
  const eyeMat=new THREE.MeshStandardMaterial({color:0x171717,roughness:.4});for(const x of [-.085,.085]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.022,8,8),eyeMat);eye.position.set(x,2.1,.218);player.add(eye);}
- const limbs=[];
+ limbs=[];
  for(const x of [-.17,.17]){const hip=new THREE.Group();hip.position.set(x,.88,0);player.add(hip);const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.115,.55,6,12),pants);leg.position.y=-.31;hip.add(leg);const shoe=new THREE.Mesh(new THREE.BoxGeometry(.23,.13,.38),shoeMat);shoe.position.set(0,-.65,.09);hip.add(shoe);limbs.push({pivot:hip,phase:x<0?0:Math.PI});}
  for(const x of [-.39,.39]){const shoulder=new THREE.Group();shoulder.position.set(x,1.58,0);player.add(shoulder);const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.48,6,12),shirt);arm.position.y=-.27;shoulder.add(arm);const hand=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),skin);hand.position.y=-.55;shoulder.add(hand);limbs.push({pivot:shoulder,phase:x<0?Math.PI:0,arm:true});}
  const belt=new THREE.Mesh(new THREE.BoxGeometry(.48,.09,.32),shoeMat);belt.position.y=.91;player.add(belt);
