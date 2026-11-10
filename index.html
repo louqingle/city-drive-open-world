@@ -62,8 +62,17 @@ function makeShanghai(){
  const sun=new THREE.DirectionalLight(0xffedcf,2.0);sun.position.set(-130,210,100);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-240;sun.shadow.camera.right=240;sun.shadow.camera.top=240;sun.shadow.camera.bottom=-240;scene.add(sun);
  box(CFG.map,.7,CFG.map,mat(0x78846d),0,-.5,0);
  // Huangpu river across east-west, separating Pudong and Puxi
- const water=add(new THREE.PlaneGeometry(620,112,64,40),new THREE.MeshPhysicalMaterial({color:0x347f9b,metalness:.48,roughness:.18,clearcoat:.9}),0,.03,0);water.rotation.x=-Math.PI/2;water.userData.water=true;
+ const water=add(new THREE.PlaneGeometry(620,112,100,40),new THREE.MeshPhysicalMaterial({color:0x347f9b,metalness:.42,roughness:.2,clearcoat:.95,clearcoatRoughness:.12}),0,.03,0);water.rotation.x=-Math.PI/2;water.userData.water=true;water.geometry.userData.base=water.geometry.attributes.position.array.slice();
  box(620,.8,4,mat(0x9c9d95),0,.15,-59);box(620,.8,4,mat(0x9c9d95),0,.15,59);
+ // Cross-river bridges inspired by Nanpu/Lupu: decks, pylons, cables and guardrails
+ for(const bx of [-118,8,132]){
+   box(17,1.05,128,mat(0x777f82),bx,1.2,0);
+   box(16,.16,126,M.road,bx,1.82,0);
+   for(const side of [-1,1]){box(.28,1.1,126,mat(0xb7b9b4),bx+side*8.2,2.35,0);
+     for(let zz=-58;zz<=58;zz+=8)box(.12,.55,.12,M.chrome,bx+side*8.2,2.95,zz)}
+   for(const zz of [-43,43]){box(1.2,23,1.2,mat(0xaaaead),bx,13,zz);for(let k=-1;k<=1;k++)box(.09,17,Math.sqrt(2),M.chrome,bx+k*4,12,zz).rotation.z=k*.12}
+   coll(bx,0,19,128);
+ }
  // Bund promenade and historic Puxi skyline
  box(620,.35,46,mat(0xb7b1a5),-105,.02,0);
  for(let i=0;i<13;i++){let z=-260+i*43,w=25+(i%3)*5,h=25+(i%4)*8,d=28;let x=-135;building(x,z,w,d,h,i);box(w+1,.8,d+1,mat(0x776f64),x,h+.35,z);
@@ -98,10 +107,15 @@ function makeShanghai(){
  for(let i=0;i<26;i++){const g=new THREE.Group();g.position.set((Math.random()-.5)*600,90+Math.random()*35,(Math.random()-.5)*600);for(let j=0;j<5;j++){let p=sphere(5+Math.random()*5,mat(0xffffff), (Math.random()-.5)*15,(Math.random()-.5)*3,(Math.random()-.5)*10,g);p.scale.y=.48}scene.add(g)}
  // player model, third-person
  player=new THREE.Group();const body=new THREE.Group();player.add(body);
- const jacket=mat(0x273d50),trousers=mat(0x202a34),skin=mat(0xc28b6b),hair=mat(0x211d1a),shoe=mat(0x11171d);
+ const jacket=mat(0x273d50,.72),trousers=mat(0x202a34,.82),skin=mat(0xc28b6b,.9),hair=mat(0x211d1a,.95),shoe=mat(0x11171d,.55);
  add(new THREE.CapsuleGeometry(.32,.68,6,12),jacket,0,1.28,0,body);
  add(new THREE.SphereGeometry(.245,18,14),skin,0,2.04,0,body);
  add(new THREE.SphereGeometry(.25,16,10,0,Math.PI*2,0,Math.PI*.55),hair,0,2.12,-.025,body);
+ // Face details and layered streetwear silhouette
+ add(new THREE.BoxGeometry(.34,.12,.34),jacket,0,1.78,0,body);
+ add(new THREE.BoxGeometry(.12,.24,.035),mat(0x9babb2),0,1.34,.305,body);
+ add(new THREE.SphereGeometry(.025,8,6),mat(0x201b19),-.085,2.06,.22,body);
+ add(new THREE.SphereGeometry(.025,8,6),mat(0x201b19),.085,2.06,.22,body);
  characterLimbs=[];for(const s of [-1,1]){const leg=new THREE.Group();leg.position.set(s*.17,.88,0);body.add(leg);add(new THREE.CapsuleGeometry(.12,.58,5,9),trousers,0,-.31,0,leg);add(new THREE.BoxGeometry(.24,.13,.38),shoe,0,-.65,.08,leg);characterLimbs.push(leg);const arm=new THREE.Group();arm.position.set(s*.39,1.58,0);body.add(arm);add(new THREE.CapsuleGeometry(.105,.5,5,9),jacket,0,-.27,0,arm);add(new THREE.SphereGeometry(.08,8,8),skin,0,-.55,0,arm);characterLimbs.push(arm)}
  scene.add(player);player.position.set(-92,0,82);yaw=Math.PI/2;pitch=.18;
  // traffic cars
@@ -117,13 +131,15 @@ function makeShanghai(){
  // NPC walkers
  for(let i=0;i<CFG.npc;i++){const g=new THREE.Group(),shirt=mat([0x3d566e,0xa65a42,0x536b4d,0xd1c4a9][i%4]);add(new THREE.CapsuleGeometry(.23,.5,4,8),shirt,0,1.05,0,g);add(new THREE.SphereGeometry(.17,12,10),skin,0,1.75,0,g);const legs=[];for(const s of [-1,1])legs.push(add(new THREE.CapsuleGeometry(.09,.42,4,7),trousers,s*.11,.46,0,g));scene.add(g);npcs.push({g,legs,x:-100+(i%4)*7,z:-170+i*19,phase:i*.7,axis:i%2?'x':'z'})}
 }
-function blocked(x,z){if(Math.abs(x)>CFG.map/2-2||Math.abs(z)>CFG.map/2-2)return true;if(Math.abs(x)<58)return true;for(const b of colliders)if(x+.65>b.a&&x-.65<b.b&&z+.65>b.c&&z-.65<b.d)return true;return false}
+function blocked(x,z){if(Math.abs(x)>CFG.map/2-2||Math.abs(z)>CFG.map/2-2)return true;if(Math.abs(z)<55 && !([-118,8,132].some(bx=>Math.abs(x-bx)<10)))return true;for(const b of colliders)if(x+.65>b.a&&x-.65<b.b&&z+.65>b.c&&z-.65<b.d)return true;return false}
 function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(f.z,0,-f.x);const m=f.clone().multiplyScalar(-joyY).add(r.multiplyScalar(joyX));if(keys.KeyW||keys.ArrowUp)m.add(f);if(keys.KeyS||keys.ArrowDown)m.sub(f);if(keys.KeyD||keys.ArrowRight)m.add(r);if(keys.KeyA||keys.ArrowLeft)m.sub(r);if(m.lengthSq()>1)m.normalize();const speed=run?CFG.sprint:CFG.walk;if(m.lengthSq()>.001){const step=m.multiplyScalar(speed*dt),nx=player.position.x+step.x,nz=player.position.z+step.z;if(!blocked(nx,player.position.z))player.position.x=nx;if(!blocked(player.position.x,nz))player.position.z=nz;player.rotation.y=Math.atan2(step.x,step.z);const walk=Math.sin(elapsed*10)*(run?1.25:1);for(const [i,o] of characterLimbs.entries())o.rotation.x=walk*(i%2?-.8:.8)}else for(const o of characterLimbs)o.rotation.x*=.8;
  if(player.position.y>0||jumpV>0){jumpV-=20*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0){jumpV=0;onGround=true}}
 }
 function updateCar(dt){const throttle=(keys.KeyW||joyY<-.2)?1:((keys.KeyS||joyY>.2)?-1:0);const steer=(keys.KeyA||joyX<-.2)?1:((keys.KeyD||joyX>.2)?-1:0);carSpeed+=throttle*18*dt;carSpeed*=Math.pow(.985,dt*60);carSpeed=THREE.MathUtils.clamp(carSpeed,-10,CFG.drive);car.rotation.y+=steer*dt*(.9+Math.abs(carSpeed)*.045)*Math.sign(carSpeed||1);const nx=car.position.x+Math.sin(car.rotation.y)*carSpeed*dt,nz=car.position.z+Math.cos(car.rotation.y)*carSpeed*dt;if(!blocked(nx,nz)){car.position.x=nx;car.position.z=nz}else carSpeed*=.25;player.position.copy(car.position);player.position.y=.05;player.rotation.y=car.rotation.y;$('#speed').textContent=Math.round(Math.abs(carSpeed)*3.6)+' km/h'}
 function cameraUpdate(dt){const target=driving?car.position:player.position;const dist=driving?10:7.5,height=driving?4.1:3.2;const desired=new THREE.Vector3(target.x-Math.sin(yaw)*dist,target.y+height+Math.sin(pitch)*4,target.z-Math.cos(yaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+(driving?1.2:1.35),target.z)}
-function updateWorld(dt){elapsed+=dt;for(const v of traffic){const t=(elapsed*v.speed+v.phase)%620-310;if(v.axis==='z'){v.g.position.set(v.lane+v.offset,.08,t*v.dir);v.g.rotation.y=v.dir>0?Math.PI:0}else{v.g.position.set(t*v.dir,.08,v.lane+v.offset);v.g.rotation.y=v.dir>0?Math.PI/2:-Math.PI/2}}
+function updateWorld(dt){elapsed+=dt;
+ const water=scene.children.find(o=>o.userData.water);if(water){const a=water.geometry.attributes.position,base=water.geometry.userData.base;for(let i=0;i<a.count;i++){const x=base[i*3],z=base[i*3+2];a.array[i*3+1]=Math.sin(x*.035+elapsed*.9)*.22+Math.cos(z*.13+elapsed*1.2)*.11;}a.needsUpdate=true;water.geometry.computeVertexNormals();}
+ for(const v of traffic){const t=(elapsed*v.speed+v.phase)%620-310;if(v.axis==='z'){v.g.position.set(v.lane+v.offset,.08,t*v.dir);v.g.rotation.y=v.dir>0?Math.PI:0}else{v.g.position.set(t*v.dir,.08,v.lane+v.offset);v.g.rotation.y=v.dir>0?Math.PI/2:-Math.PI/2}}
  for(const n of npcs){n.phase+=dt*.9;const d=Math.sin(n.phase)*7;n.g.position.set(n.x+(n.axis==='x'?d:0),0,n.z+(n.axis==='z'?d:0));n.legs[0].rotation.x=Math.sin(n.phase*6)*.5;n.legs[1].rotation.x=-Math.sin(n.phase*6)*.5}
 }
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(driving)updateCar(dt);else movePlayer(dt);updateWorld(dt);cameraUpdate(dt);renderer.render(scene,camera);if(!driving)$('#speed').textContent=run?'奔跑':'步行'}
