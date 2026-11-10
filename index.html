@@ -32,8 +32,16 @@ function building(x,z,w,d,h,style=0){
  // repeated facade glazing as a few efficient strips
  for(let y=3;y<h-1;y+=3.3){box(w*.84,.95,.08,M.glass,x,y,z+d/2+.06);box(w*.84,.12,.16,mat(0xd5d0c4),x,y-.58,z+d/2+.12)}
  for(let xx=-w/2+1.2;xx<w/2;xx+=3.1)box(.12,h-2,.12,mat(0xd0c8b9),x+xx,h/2,z+d/2+.13);
- // ground-floor retail
+ // ground-floor retail, recessed shopfront and awning
  box(w*.78,2.7,.16,mat(0x315563,.28,.25),x,1.45,z+d/2+.14);
+ box(w*.86,.22,.9,mat(0x665d50),x,3.05,z+d/2+.42);
+ // roof parapet, HVAC housings and service core break up the flat silhouette
+ box(w+.35,.65,.35,mat(0x8b918f),x,h+.48,z-d/2);
+ box(.22,.65,d+.35,mat(0x8b918f),x-w/2,h+.48,z);
+ box(w*.22,1.4,d*.2,mat(0x737d80),x+w*.28,h+.8,z-d*.18);
+ box(w*.14,.85,d*.14,mat(0x9ca3a0),x-w*.24,h+.55,z+d*.18);
+ // balconies on selected mid-rise facades
+ if(style%3===0 && h>24){for(let yy=6;yy<h-4;yy+=6)for(let xx=-w/2+3;xx<w/2-1;xx+=6){box(2.1,.13,.85,mat(0x8f9a98),x+xx,yy,z+d/2+.45);box(2.1,.65,.08,M.chrome,x+xx,yy+.34,z+d/2+.82)}}
  coll(x,z,w+1,d+1);
  return b;
 }
@@ -101,8 +109,18 @@ function makeShanghai(){
  for(let i=0;i<CFG.trees;i++){let x=(Math.random()-.5)*550,z=(Math.random()-.5)*550;if(Math.abs(x)<72||Math.abs(x+105)<40)continue;if(Math.abs(x%56)<10||Math.abs(z%56)<10)trees.push({x,z,y:1.35,s:.8+Math.random()*.6})}
  const trunks=new THREE.InstancedMesh(trunkGeo,mat(0x69513b),trees.length),crowns=new THREE.InstancedMesh(crownGeo,M.green,trees.length),dummy=new THREE.Object3D();
  trees.forEach((t,i)=>{dummy.position.set(t.x,1.35,t.z);dummy.scale.setScalar(t.s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=3.4;dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix)});scene.add(trunks,crowns);
- // Street lamps
+ // Street lamps and signalized intersections
  for(let z=-270;z<280;z+=42){for(const x of [-25,25]){cyl(.1,.15,6,mat(0x343b3d),x,3,z,8);box(1.8,.1,.1,mat(0x343b3d),x+.7,5.8,z);sphere(.16,mat(0xffe9c2),x+1.45,5.7,z)}}
+ for(let x=-250;x<=250;x+=56)for(let z=-250;z<=250;z+=56){
+   // zebra crossings on both approaches
+   for(let k=-4;k<=4;k++)box(.72,.035,5.2,mat(0xe6e4dc),x+k*1.35,.055,z-10);
+   // compact three-aspect traffic signal
+   cyl(.09,.09,4.6,mat(0x30383b),x+9,2.3,z+8,8);
+   box(.48,1.25,.42,mat(0x242c30),x+9,4.5,z+8);
+   sphere(.13,mat(0x9c3029),x+9,4.92,z+8.23);
+   sphere(.13,mat(0xb69a38),x+9,4.5,z+8.23);
+   sphere(.13,mat(0x3c9a59),x+9,4.08,z+8.23);
+ }
  // simple cloud banks
  for(let i=0;i<26;i++){const g=new THREE.Group();g.position.set((Math.random()-.5)*600,90+Math.random()*35,(Math.random()-.5)*600);for(let j=0;j<5;j++){let p=sphere(5+Math.random()*5,mat(0xffffff), (Math.random()-.5)*15,(Math.random()-.5)*3,(Math.random()-.5)*10,g);p.scale.y=.48}scene.add(g)}
  // player model, third-person
@@ -122,8 +140,9 @@ function makeShanghai(){
  const carPalette=[0xe5e2d8,0x202d3a,0x9e3329,0x687a83,0xc4a05e,0xf0f0eb];
  function createCar(index,playerCar=false){const g=new THREE.Group(),paint=mat(playerCar?0x202a35:carPalette[index%carPalette.length],.3,.42);
   box(2.05,.7,4.25,paint,0,.72,0,g);box(1.7,.7,2.1,M.glass,0,1.38,-.12,g);box(1.85,.12,.9,paint,0,1.08,1.48,g);
-  for(const sx of [-1,1])for(const sz of [-1,1]){const t=cyl(.37,.37,.2,M.rubber,sx*1.03,.38,sz*1.32,12,g);t.rotation.z=Math.PI/2}
-  for(const sx of [-.65,.65]){box(.4,.2,.06,mat(0xffe5bd,.3),sx,.75,2.14,g);box(.4,.2,.06,mat(0xd33c2f,.3),sx,.75,-2.14,g)}
+  for(const sx of [-1,1])for(const sz of [-1,1]){const wheelGroup=new THREE.Group();wheelGroup.position.set(sx*1.03,.38,sz*1.32);g.add(wheelGroup);const t=cyl(.37,.37,.2,M.rubber,0,0,0,16,wheelGroup);t.rotation.z=Math.PI/2;const hub=cyl(.19,.19,.215,M.chrome,0,0,0,12,wheelGroup);hub.rotation.z=Math.PI/2;wheelGroup.userData.spin=true;g.userData.wheels??=[];g.userData.wheels.push(wheelGroup)}
+  for(const sx of [-.65,.65]){box(.4,.2,.06,mat(0xffe5bd,.3),sx,.75,2.14,g);box(.4,.2,.06,mat(0xd33c2f,.3),sx,.75,-2.14,g);box(.12,.22,.3,M.chrome,sx*1.45,1.15,.2,g)}
+  box(1.8,.18,.12,M.chrome,0,.48,2.14,g);box(1.8,.18,.12,M.chrome,0,.48,-2.14,g);
   scene.add(g);return g;
  }
  car=createCar(0,true);car.position.set(-92,.08,78.5);car.rotation.y=Math.PI/2;car.visible=true;
@@ -138,6 +157,8 @@ function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw))
 function updateCar(dt){const throttle=(keys.KeyW||joyY<-.2)?1:((keys.KeyS||joyY>.2)?-1:0);const steer=(keys.KeyA||joyX<-.2)?1:((keys.KeyD||joyX>.2)?-1:0);carSpeed+=throttle*18*dt;carSpeed*=Math.pow(.985,dt*60);carSpeed=THREE.MathUtils.clamp(carSpeed,-10,CFG.drive);car.rotation.y+=steer*dt*(.9+Math.abs(carSpeed)*.045)*Math.sign(carSpeed||1);const nx=car.position.x+Math.sin(car.rotation.y)*carSpeed*dt,nz=car.position.z+Math.cos(car.rotation.y)*carSpeed*dt;if(!blocked(nx,nz)){car.position.x=nx;car.position.z=nz}else carSpeed*=.25;player.position.copy(car.position);player.position.y=.05;player.rotation.y=car.rotation.y;$('#speed').textContent=Math.round(Math.abs(carSpeed)*3.6)+' km/h'}
 function cameraUpdate(dt){const target=driving?car.position:player.position;const dist=driving?10:7.5,height=driving?4.1:3.2;const desired=new THREE.Vector3(target.x-Math.sin(yaw)*dist,target.y+height+Math.sin(pitch)*4,target.z-Math.cos(yaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+(driving?1.2:1.35),target.z)}
 function updateWorld(dt){elapsed+=dt;
+ // Spin visible wheel hubs on all traffic and the player's vehicle
+ for(const vehicle of [car,...traffic.map(v=>v.g)])for(const wheel of (vehicle?.userData.wheels||[]))wheel.rotation.x+=dt*(vehicle===car?carSpeed:13);
  const water=scene.children.find(o=>o.userData.water);if(water){const a=water.geometry.attributes.position,base=water.geometry.userData.base;for(let i=0;i<a.count;i++){const x=base[i*3],z=base[i*3+2];a.array[i*3+1]=Math.sin(x*.035+elapsed*.9)*.22+Math.cos(z*.13+elapsed*1.2)*.11;}a.needsUpdate=true;water.geometry.computeVertexNormals();}
  for(const v of traffic){const t=(elapsed*v.speed+v.phase)%620-310;if(v.axis==='z'){v.g.position.set(v.lane+v.offset,.08,t*v.dir);v.g.rotation.y=v.dir>0?Math.PI:0}else{v.g.position.set(t*v.dir,.08,v.lane+v.offset);v.g.rotation.y=v.dir>0?Math.PI/2:-Math.PI/2}}
  for(const n of npcs){n.phase+=dt*.9;const d=Math.sin(n.phase)*7;n.g.position.set(n.x+(n.axis==='x'?d:0),0,n.z+(n.axis==='z'?d:0));n.legs[0].rotation.x=Math.sin(n.phase*6)*.5;n.legs[1].rotation.x=-Math.sin(n.phase*6)*.5}
