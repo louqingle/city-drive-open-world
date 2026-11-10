@@ -86,6 +86,17 @@ function makeShanghai(){
  for(let i=0;i<13;i++){let z=-260+i*43,w=25+(i%3)*5,h=25+(i%4)*8,d=28;let x=-135;building(x,z,w,d,h,i);box(w+1,.8,d+1,mat(0x776f64),x,h+.35,z);
    for(let y=5;y<h-3;y+=5)for(let xx=-w/2+3;xx<w/2;xx+=5)box(1.35,2.1,.12,M.darkglass,x+xx,y,z+d/2+.18);
  }
+ // Puxi inner-city neighborhoods: varied Shanghai residential and office blocks
+ // Kept clear of the Bund frontage and the Huangpu river corridor.
+ for(const x of [-245,-190]){
+   for(const z of [-230,-174,-118,118,174,230]){
+     const seed=Math.abs(Math.floor(x*3+z*7));
+     const width=24+(seed%3)*3,depth=25+(seed%4)*2,height=27+(seed%6)*5;
+     building(x,z,width,depth,height,seed%6);
+     // occasional rooftop water tanks and lift overruns
+     if(seed%2===0){cyl(1.25,1.25,2.1,mat(0x858d8c),x+width*.22,height+1.1,z-depth*.18,10);box(4,1.1,4,mat(0x969d99),x-width*.22,height+.55,z+depth*.2)}
+   }
+ }
  // Waibaidu bridge-inspired crossing and riverside lamps
  for(let z=-250;z<280;z+=25){cyl(.09,.14,6,mat(0x303638),-82,3,z,8);box(1.6,.1,.1,mat(0x303638),-82.8,5.8,z);sphere(.18,mat(0xffe8bd),-83.5,5.7,z)}
  // Pudong central financial district
