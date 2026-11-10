@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080d14"><title>都市狂飙：自由之城</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080d14;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;touch-action:none}canvas{display:block;width:100%;height:100%;touch-action:none}#hud{position:fixed;inset:0;pointer-events:none;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);display:flex;flex-direction:column;justify-content:space-between}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.brand{background:#07111dcc;border:1px solid #ffffff24;border-radius:14px;padding:10px 13px;backdrop-filter:blur(12px)}.brand b{font-size:13px;letter-spacing:2px}.brand small{display:block;color:#9db0c4;font-size:10px;margin-top:3px}.stats{display:flex;gap:7px}.pill{background:#07111dcc;border:1px solid #ffffff24;border-radius:12px;padding:9px 11px;font-size:11px;color:#dce8f4;backdrop-filter:blur(12px)}#mission{align-self:center;margin-top:8px;background:#07111dcc;border:1px solid #ffffff20;border-radius:20px;padding:8px 14px;font-size:11px;color:#c8d5e3}#bottom{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:12px}.hint{background:#07111dcc;border:1px solid #ffffff20;border-radius:12px;padding:9px 11px;color:#b7c6d6;font-size:10px;max-width:44%;line-height:1.5}.controls{display:flex;align-items:flex-end;gap:12px;pointer-events:auto}.stick{width:116px;height:116px;border-radius:50%;background:#ffffff14;border:1px solid #ffffff55;position:relative;touch-action:none;backdrop-filter:blur(5px)}.knob{position:absolute;width:48px;height:48px;border-radius:50%;background:#dbeafe55;border:1px solid #ffffff99;left:33px;top:33px;box-shadow:0 4px 18px #0008}.buttons{display:grid;grid-template-columns:repeat(2,58px);gap:8px}.gamebtn{width:58px;height:58px;border-radius:18px;border:1px solid #ffffff55;background:#0a1828dd;color:white;font-weight:700;font-size:11px;backdrop-filter:blur(8px);touch-action: manipulation}.gamebtn.primary{background:#d97706e8;border-color:#fbbf24}.gamebtn:active{transform:scale(.94);background:#2563eb}.wide{grid-column:span 2;width:100%;height:42px;border-radius:14px}.desktop{position:fixed;right:14px;bottom:18px;color:#9aabba;font-size:10px;pointer-events:none}#start{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#233e55ee,#060a10 75%);z-index:5;padding:24px}#start .panel{width:min(440px,100%);border:1px solid #ffffff25;background:#081421dd;backdrop-filter:blur(20px);border-radius:24px;padding:25px;box-shadow:0 25px 80px #0009}#start h1{font-size:clamp(26px,7vw,42px);line-height:1.1;margin:0 0 8px;letter-spacing:2px}#start p{color:#a8bacb;font-size:13px;line-height:1.7}#start button{width:100%;padding:16px;border:0;border-radius:14px;background:linear-gradient(100deg,#f59e0b,#ea580c);color:#fff;font-weight:800;font-size:16px;margin-top:12px}#start .sub{font-size:10px;color:#70869a;text-align:center;margin-top:12px}#rotate{display:none;position:fixed;inset:0;z-index:4;background:#07111c;color:#fff;place-items:center;text-align:center;padding:30px;font-size:14px}
+@media(orientation:portrait){#rotate{display:grid}#hud{opacity:.25}}
+@media(min-width:900px){.stick{width:130px;height:130px}.knob{left:40px;top:40px}.gamebtn{width:66px;height:66px}.buttons{grid-template-columns:repeat(2,66px)}}
+</style>
+</head>
+<body>
+<div id="rotate">请将手机横过来<br><small style="color:#8da2b7">横屏体验自由之城</small></div>
+<div id="hud">
+ <div class="top"><div class="brand"><b>自由之城</b><small>OPEN WORLD · BUILD 0.1</small></div><div class="stats"><div class="pill" id="mode">步行</div><div class="pill" id="speed">速度 0 km/h</div><div class="pill" id="clock">09:30</div></div></div>
+ <div id="mission">探索城市 · 靠近车辆后点击「上车」</div>
+ <div id="bottom"><div class="hint" id="hint">左侧摇杆移动 · 右侧按钮互动<br>靠近车辆即可驾驶</div><div class="controls"><div class="stick" id="stick"><div class="knob" id="knob"></div></div><div class="buttons"><button class="gamebtn" id="jump">跳跃</button><button class="gamebtn primary" id="action">上车</button><button class="gamebtn" id="run">冲刺</button><button class="gamebtn" id="look">视角</button></div></div></div>
+</div>
+<div id="start"><div class="panel"><div style="color:#fbbf24;font-size:11px;letter-spacing:3px;margin-bottom:14px">A NEW CITY IS WAITING</div><h1>都市狂飙<br>自由之城</h1><p>一座可以自由探索的 3D 海滨城市。走上街头，找到你的第一辆车，开进城市深处。</p><p>第一版试玩：人物移动、跳跃、第三人称跟随、上车驾驶、城市道路与建筑。</p><button id="play">进入城市</button><div class="sub">建议横屏 · iPhone Safari / Chrome · 首次加载需要网络</div></div></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const $=id=>document.getElementById(id);
+let scene,camera,renderer,player,car,vehicle=false,run=false,jumping=false,velocityY=0,angle=0,camYaw=0,day=0.39,clockSec=9.5*3600;
+const clock=new THREE.Clock(),keys={},joy={x:0,y:0},up=new THREE.Vector3(0,1,0);
+const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
+function box(w,h,d,m,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;scene.add(o);return o}
+function init(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x8eb4c7);scene.fog=new THREE.Fog(0x8eb4c7,100,430);
+ camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,900);
+ renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;document.body.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xc9e8ff,0x59604d,2));
+ const sun=new THREE.DirectionalLight(0xffe0b1,3.1);sun.position.set(-90,130,70);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
+ const ground=mat(0x53665b);box(650,1,650,ground,0,-.6,0);
+ const road=mat(0x242b32),side=mat(0x9a9a8e),line=mat(0xd8c88c);
+ for(let i=-3;i<=3;i++){
+  box(18,.08,620,road,i*74,.02,0);box(2,.1,620,side,i*74-10,.04,0);box(2,.1,620,side,i*74+10,.04,0);
+  box(620,.08,18,road,0,.03,i*74);box(620,.1,2,side,0,.05,i*74-10);box(620,.1,2,side,0,.05,i*74+10);
+  for(let z=-290;z<300;z+=18)box(.22,.035,5,line,i*74,.09,z);
+  for(let x=-290;x<300;x+=18)box(5,.035,.22,line,x,.09,i*74);
+ }
+ const colors=[0x9badaf,0xb6a18b,0x667f91,0xc0b7a1,0x7b8a80,0x8d9aab,0xb8a4a0];
+ for(let x=-3;x<=3;x++)for(let z=-3;z<=3;z++){
+  const bx=x*74,bz=z*74;
+  if(Math.abs(x)+Math.abs(z)<2)continue;
+  for(let n=0;n<3;n++){
+   const w=13+Math.random()*13,d=13+Math.random()*13,h=12+Math.random()*55;
+   const px=bx+(Math.random()-.5)*38,pz=bz+(Math.random()-.5)*38;
+   const building=box(w,h,d,mat(colors[Math.floor(Math.random()*colors.length)],.72),px,h/2,pz);
+   const roof=box(w*.94,.5,d*.94,mat(0x343f49),px,h+.25,pz);
+   const winmat=mat(0x9cc6d2,.35);
+   for(let yy=5;yy<h-2;yy+=5)for(let xx=-w/2+2;xx<w/2-1;xx+=4){
+    const win=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.8,.08),winmat);win.position.set(px+xx,yy,pz+d/2+.06);scene.add(win);
+   }
+  }
+ }
+ // Waterfront and beach edge
+ const water=new THREE.Mesh(new THREE.PlaneGeometry(620,170),new THREE.MeshStandardMaterial({color:0x247b9b,roughness:.24,metalness:.12}));water.rotation.x=-Math.PI/2;water.position.set(0,-.15,-365);scene.add(water);
+ const sand=mat(0xc9b58a);box(620,.3,25,sand,0,-.1,-270);
+ // street trees
+ for(let i=0;i<90;i++){const x=(Math.random()-.5)*520,z=(Math.random()-.5)*520;if(Math.abs(x%74)<13||Math.abs(z%74)<13)continue;const trunk=mat(0x59422d),leaf=mat(0x315c43);const t=new THREE.Mesh(new THREE.CylinderGeometry(.35,.5,3,6),trunk);t.position.set(x,1.5,z);scene.add(t);const crown=new THREE.Mesh(new THREE.SphereGeometry(2.1,7,6),leaf);crown.position.set(x,4,z);crown.castShadow=true;scene.add(crown)}
+ // player
+ player=new THREE.Group();const body=new THREE.Mesh(new THREE.CapsuleGeometry(.62,1.05,4,8),mat(0x202c3a));body.position.y=1.25;body.castShadow=true;player.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),mat(0xc58e69));head.position.y=2.25;head.castShadow=true;player.add(head);
+ const jacket=new THREE.Mesh(new THREE.BoxGeometry(1.25,.55,.7),mat(0xd97706));jacket.position.set(0,1.45,0);player.add(jacket);
+ scene.add(player);player.position.set(8,0,8);
+ // parked sports car
+ car=new THREE.Group();const shell=new THREE.Mesh(new THREE.BoxGeometry(2.5,.72,4.8),mat(0xb51f2d,.35));shell.position.y=.85;shell.castShadow=true;car.add(shell);
+ const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.8,.72,2.15),mat(0x243847,.3));cabin.position.set(0,1.48,-.2);car.add(cabin);
+ const wheelMat=mat(0x101317),rim=mat(0xb6bdc3,.35);
+ for(const x of [-1.22,1.22])for(const z of [-1.55,1.55]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.28,12),wheelMat);wh.rotation.z=Math.PI/2;wh.position.set(x,.48,z);car.add(wh);const r=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.3,12),rim);r.rotation.z=Math.PI/2;r.position.copy(wh.position);car.add(r)}
+ car.position.set(12,0,0);car.rotation.y=Math.PI/2;scene.add(car);
+ // distant skyline silhouettes
+ for(let i=0;i<45;i++){let x=(Math.random()-.5)*580,z=-310-Math.random()*90,h=18+Math.random()*55;box(8,h,8,mat(0x71838b),x,h/2,z)}
+ window.addEventListener('resize',resize);resize();animate();
+}
+function resize(){if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5))}
+function setAction(){if(!vehicle){if(player.position.distanceTo(car.position)<7){vehicle=true;$('mode').textContent='驾驶';$('action').textContent='下车';$('mission').textContent='已上车 · 驾驶探索城市';}else{$('mission').textContent='先靠近红色跑车，再点击上车';}}else{vehicle=false;player.position.copy(car.position).add(new THREE.Vector3(3,0,0));$('mode').textContent='步行';$('action').textContent='上车';$('mission').textContent='下车成功 · 继续探索城市';}}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);clockSec+=dt*12;const h=Math.floor(clockSec/3600)%24,m=Math.floor(clockSec%3600/60);$('clock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+ const ix=joy.x+(keys.KeyD?1:0)-(keys.KeyA?1:0),iy=joy.y+(keys.KeyS?1:0)-(keys.KeyW?1:0);const input=new THREE.Vector2(ix,iy);if(input.length()>1)input.normalize();
+ const forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw)),right=new THREE.Vector3(forward.z,0,-forward.x);
+ if(vehicle){const drive=-input.y,steer=input.x;car.rotation.y+=steer*dt*(Math.abs(drive)+.25)*1.5;const dir=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));const speed=drive*(run?27:19);car.position.addScaledVector(dir,speed*dt);car.position.x=THREE.MathUtils.clamp(car.position.x,-300,300);car.position.z=THREE.MathUtils.clamp(car.position.z,-300,300);$('speed').textContent='速度 '+Math.round(Math.abs(speed)*3.6)+' km/h';}
+ else{const move=forward.multiplyScalar(-input.y).add(right.multiplyScalar(input.x));if(move.lengthSq()>0){move.normalize();const sp=run?13:6.2;player.position.addScaledVector(move,sp*dt);player.rotation.y=Math.atan2(move.x,move.z);}$('speed').textContent='步速 '+(input.length()>0? (run?'冲刺':'行走'):'静止');if(jumping){velocityY-=20*dt;player.position.y+=velocityY*dt;if(player.position.y<=0){player.position.y=0;jumping=false;velocityY=0}}}
+ const target=vehicle?car.position:player.position;const rot=vehicle?car.rotation.y:player.rotation.y;const dist=vehicle?13:9;const desired=new THREE.Vector3(target.x-Math.sin(rot+camYaw)*dist,target.y+(vehicle?6:5.5),target.z-Math.cos(rot+camYaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+1.4,target.z);
+ renderer.render(scene,camera);
+}
+$('play').onclick=()=>{$('start').style.display='none';document.documentElement.requestFullscreen?.().catch(()=>{});};
+$('action').onclick=setAction;$('run').onpointerdown=()=>run=true;$('run').onpointerup=$('run').onpointercancel=()=>run=false;$('jump').onclick=()=>{if(!vehicle&&!jumping){jumping=true;velocityY=8}};
+$('look').onclick=()=>{camYaw+=Math.PI/4;$('mission').textContent='视角已旋转';};
+window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')setAction();if(e.code==='Space'&&!vehicle&&!jumping){jumping=true;velocityY=8}});window.addEventListener('keyup',e=>keys[e.code]=false);
+const stick=$('stick'),knob=$('knob');let active=null;function stickMove(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=43,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max}knob.style.transform='translate('+dx+'px,'+dy+'px)';joy.x=dx/max;joy.y=dy/max}
+stick.addEventListener('pointerdown',e=>{active=e.pointerId;stick.setPointerCapture(active);stickMove(e)});stick.addEventListener('pointermove',e=>{if(active===e.pointerId)stickMove(e)});function resetStick(){active=null;joy.x=joy.y=0;knob.style.transform='translate(0,0)'}stick.addEventListener('pointerup',resetStick);stick.addEventListener('pointercancel',resetStick);
+init();
+</script>
+</body></html>
