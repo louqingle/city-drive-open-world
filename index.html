@@ -1,88 +1,137 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101923"><title>都市狂飙：自由之城</title>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#111a22"><title>都市狂飙：自由之城 · 上海</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101923;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;touch-action:none}
-#game{position:fixed;inset:0;z-index:0}canvas{display:block;width:100%;height:100%}
-#ui{position:fixed;inset:0;z-index:5;pointer-events:none}.top{position:absolute;top:max(14px,env(safe-area-inset-top));left:14px;right:14px;display:flex;justify-content:space-between}.tag{padding:9px 12px;border-radius:12px;background:#07111dcc;border:1px solid #ffffff30;font-size:12px}
-#stick{position:absolute;left:max(22px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff90;pointer-events:auto;touch-action:none}
-#knob{position:absolute;width:54px;height:54px;left:37px;top:37px;border-radius:50%;background:#dbeafe99;border:2px solid white;pointer-events:none}
-#buttons{position:absolute;right:max(20px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,64px);gap:10px;pointer-events:auto}
-button{height:62px;border:1px solid #ffffff90;border-radius:18px;background:#0b1c30eF;color:white;font-weight:700;font-size:12px;touch-action:manipulation}
-#status{position:absolute;top:58px;left:50%;transform:translateX(-50%);background:#07111dcc;padding:8px 12px;border-radius:10px;font-size:12px;white-space:nowrap;max-width:90%;overflow:hidden}
-#start{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:radial-gradient(ellipse,#263e52,#070c12);padding:24px}
-.panel{width:min(430px,100%);padding:26px;border:1px solid #ffffff30;border-radius:24px;background:#081421ed}
-h1{font-size:32px;margin:0 0 8px}.panel p{color:#b7c6d6;font-size:14px;line-height:1.6}.panel button{width:100%;height:54px;background:#e87924;border:0;font-size:16px}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8db9d0;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;touch-action:none}#game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+#ui{position:fixed;inset:0;z-index:5;pointer-events:none}.tag{padding:9px 13px;border:1px solid #ffffff35;border-radius:12px;background:#101820bd;font-size:12px;backdrop-filter:blur(12px)}.top{position:absolute;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;gap:8px}
+#stick{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(20px,env(safe-area-inset-bottom));width:126px;height:126px;border-radius:50%;border:2px solid #ffffff80;background:#ffffff20;pointer-events:auto;touch-action:none}#knob{position:absolute;left:35px;top:35px;width:52px;height:52px;border-radius:50%;background:#e8f3ffad;border:2px solid #fff;pointer-events:none}
+#buttons{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,66px);gap:9px;pointer-events:auto}button{height:59px;border:1px solid #ffffff80;border-radius:16px;background:#111e30e8;color:white;font-weight:700;font-size:12px;touch-action:manipulation}button:active{background:#bd6b2b}
+#status{position:absolute;top:58px;left:50%;transform:translateX(-50%);padding:8px 12px;border-radius:10px;background:#101820bd;font-size:12px;white-space:nowrap;max-width:92%;overflow:hidden}
+#start{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 55% 35%,#476d7e,#101820 75%)}.panel{width:min(430px,100%);padding:25px;border:1px solid #ffffff30;border-radius:24px;background:#101b27eF;box-shadow:0 20px 70px #0008}h1{font-size:30px;margin:0 0 8px}.panel p{color:#bdcbd4;font-size:14px;line-height:1.65}.panel button{width:100%;height:52px;background:#bb6b36;border:0;font-size:16px}
+@media(orientation:portrait){#status{top:64px}#stick{width:112px;height:112px}#knob{left:30px;top:30px}}
 </style></head><body>
-<div id="game"></div>
-<div id="ui"><div class="top"><div class="tag">自由之城 · 3D 测试版</div><div class="tag" id="speed">速度 0</div></div><div id="status">等待进入城市</div><div id="stick"><div id="knob"></div></div><div id="buttons"><button id="jump">跳跃</button><button id="run">冲刺</button><button id="view">视角复位</button><button id="reset">重置位置</button></div></div>
-<div id="start"><div class="panel"><div style="color:#fbbf24;letter-spacing:3px;font-size:11px">OPEN WORLD · MOBILE TEST</div><h1>都市狂飙<br>自由之城</h1><p>这次先验证 iPhone 的 3D 画面和触屏控制。看到地面、建筑和人物移动后，再逐步恢复完整城市内容。</p><button id="play">进入城市</button></div></div>
+<div id="game"></div><div id="ui"><div class="top"><div class="tag">上海 · 自由之城</div><div class="tag" id="speed">步行</div></div><div id="status">陆家嘴 · 黄浦江沿岸</div><div id="stick"><div id="knob"></div></div><div id="buttons"><button id="action">上车</button><button id="jump">跳跃</button><button id="run">冲刺</button><button id="reset">重置</button></div></div>
+<div id="start"><div class="panel"><div style="font-size:11px;letter-spacing:3px;color:#e5b37b;margin-bottom:12px">SHANGHAI · OPEN WORLD</div><h1>都市狂飙<br>自由之城</h1><p>城市地图已切换为上海主题。保留第三人称行走、自由观察、汽车驾驶与触屏操作。点击进入后，拖动屏幕观察城市。</p><button id="play">进入上海</button></div></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
-const status=document.querySelector('#status'),game=document.querySelector('#game');
-let renderer,scene,camera,player,limbs=[],velocity=0,jumpV=0,run=false,yaw=0,pitch=.35,active=null,joyX=0,joyY=0,lastX=0,lastY=0;
-const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
-function boot(){
- scene=new THREE.Scene();scene.background=new THREE.Color(0x87b8d0);
- camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,300);
- renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',failIfMajorPerformanceCaveat:false});
- renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';game.appendChild(renderer.domElement);
- renderer.shadowMap.enabled=false;scene.fog=new THREE.Fog(0x9bb7c4,95,260);
- scene.add(new THREE.HemisphereLight(0xffffff,0x596b55,2));
- const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-20,40,20);scene.add(sun);
- const ground=new THREE.Mesh(new THREE.PlaneGeometry(520,520),mat(0x65745f));ground.rotation.x=-Math.PI/2;ground.position.y=-.08;scene.add(ground);
- const roadMat=mat(0x30343a),sideMat=mat(0xb0aa98),lineMat=new THREE.MeshStandardMaterial({color:0xe8d6a0,roughness:.8});
- const road=new THREE.Mesh(new THREE.BoxGeometry(15,.08,520),roadMat);road.position.set(0,0,-10);scene.add(road);
- const sidewalkL=new THREE.Mesh(new THREE.BoxGeometry(2,.18,520),sideMat);sidewalkL.position.set(-8.7,.02,-10);scene.add(sidewalkL);
- const sidewalkR=sidewalkL.clone();sidewalkR.position.x=8.7;scene.add(sidewalkR);
- for(let z=-250;z<250;z+=18){const dash=new THREE.Mesh(new THREE.BoxGeometry(.18,.025,7),lineMat);dash.position.set(0,.06,z);scene.add(dash);}
- const facadeColors=[0xb9b1a2,0x9eaaa9,0xc9b89f,0x87999d,0xb5aaa0,0x9a9b91];
- const windowMats=[mat(0x315064),mat(0x465f6a),new THREE.MeshStandardMaterial({color:0xf0d39a,emissive:0x5b4324,emissiveIntensity:.22,roughness:.5})];
- function addBuilding(x,z,w,d,h,idx){
-   const base=mat(facadeColors[idx%facadeColors.length]),body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),base);body.position.set(x,h/2,z);scene.add(body);
-   const trim=mat(0xd5cbbb),roof=new THREE.Mesh(new THREE.BoxGeometry(w+.35,.45,d+.35),trim);roof.position.set(x,h+.18,z);scene.add(roof);
-   const front=z+d/2+.035, floors=Math.max(2,Math.floor(h/3.2)), cols=Math.max(2,Math.floor(w/2.6));
-   for(let fy=0;fy<floors;fy++)for(let cx=0;cx<cols;cx++){
-     const ww=new THREE.Mesh(new THREE.BoxGeometry(.95,1.35,.07),windowMats[(idx+fy+cx)%9===0?2:(idx+cx)%2]);ww.position.set(x-w/2+1.35+cx*((w-2.3)/(cols-1)),1.35+fy*((h-2)/(floors)),front);scene.add(ww);
-     const sill=new THREE.Mesh(new THREE.BoxGeometry(1.08,.09,.13),trim);sill.position.set(ww.position.x,ww.position.y-.76,front+.025);scene.add(sill);
-   }
-   const shop=new THREE.Mesh(new THREE.BoxGeometry(w*.82,2.5,.12),new THREE.MeshStandardMaterial({color:0x426b76,metalness:.12,roughness:.25}));shop.position.set(x,1.35,front+.04);scene.add(shop);
- }
- for(let side of [-1,1])for(let row=0;row<9;row++){const z=-92+row*23;const w=9+(row%3)*2,d=12+(row%2)*3,h=13+(row%4)*7;addBuilding(side*(12+w/2),z,w,d,h,row+(side>0?2:0));}
- for(let side of [-1,1])for(let row=0;row<7;row++){const z=-80+row*28;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.25,3,8),mat(0x66503b));trunk.position.set(side*12,1.5,z);scene.add(trunk);const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,12,10),mat(0x356047));crown.position.set(side*12,3.8,z);scene.add(crown);}
- player=new THREE.Group();const shirt=mat(0x263c56),pants=mat(0x202a35),skin=mat(0xc38b69),hair=mat(0x25201d),shoeMat=mat(0x111820),detail=mat(0x9aa8b5);
- const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.31,.72,8,16),shirt);torso.position.y=1.3;player.add(torso);
- const jacket=new THREE.Mesh(new THREE.BoxGeometry(.48,.5,.34),detail);jacket.position.set(0,1.35,.02);jacket.scale.set(.12,1,.08);player.add(jacket);
- const neck=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.17,12),skin);neck.position.y=1.83;player.add(neck);
- const head=new THREE.Mesh(new THREE.SphereGeometry(.245,24,20),skin);head.scale.set(.92,1.12,.92);head.position.y=2.08;player.add(head);
- const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.25,20,14,0,Math.PI*2,0,Math.PI*.58),hair);hairCap.position.set(0,2.16,-.025);player.add(hairCap);
- const fringe=new THREE.Mesh(new THREE.BoxGeometry(.27,.09,.12),hair);fringe.position.set(0,2.19,.19);player.add(fringe);
- const earGeo=new THREE.SphereGeometry(.055,10,8);for(const x of [-.24,.24]){const ear=new THREE.Mesh(earGeo,skin);ear.position.set(x,2.07,0);player.add(ear);}
- const eyeMat=new THREE.MeshStandardMaterial({color:0x171717,roughness:.4});for(const x of [-.085,.085]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.022,8,8),eyeMat);eye.position.set(x,2.1,.218);player.add(eye);}
- limbs=[];
- for(const x of [-.17,.17]){const hip=new THREE.Group();hip.position.set(x,.88,0);player.add(hip);const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.115,.55,6,12),pants);leg.position.y=-.31;hip.add(leg);const shoe=new THREE.Mesh(new THREE.BoxGeometry(.23,.13,.38),shoeMat);shoe.position.set(0,-.65,.09);hip.add(shoe);limbs.push({pivot:hip,phase:x<0?0:Math.PI});}
- for(const x of [-.39,.39]){const shoulder=new THREE.Group();shoulder.position.set(x,1.58,0);player.add(shoulder);const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.48,6,12),shirt);arm.position.y=-.27;shoulder.add(arm);const hand=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),skin);hand.position.y=-.55;shoulder.add(hand);limbs.push({pivot:shoulder,phase:x<0?Math.PI:0,arm:true});}
- const belt=new THREE.Mesh(new THREE.BoxGeometry(.48,.09,.32),shoeMat);belt.position.y=.91;player.add(belt);
- scene.add(player);player.position.set(0,0,8);
- status.textContent='3D 场景已启动 · 左侧摇杆移动 · 拖动画面转动视角';
- animate();
+const $=s=>document.querySelector(s), game=$('#game'),status=$('#status');
+const CFG={map:620,block:42,road:14,npc:18,cars:16,trees:95,walk:6.8,sprint:11.5,drive:24};
+let renderer,scene,camera,player,car,driving=false,carSpeed=0,yaw=0,pitch=.22,joyX=0,joyY=0,stickId=null,drag=false,lastX=0,lastY=0,jumpV=0,onGround=true,run=false,elapsed=0;
+const clock=new THREE.Clock(),keys={};let npcs=[],traffic=[],colliders=[];
+const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const M={road:mat(0x30373c),side:mat(0xbab7ad),line:mat(0xe7dfc9),concrete:mat(0x9da3a2),glass:mat(0x426777,.22,.48),darkglass:mat(0x263f50,.2,.55),green:mat(0x426b4b),skin:mat(0xc38f70),shirt:mat(0x334b64),pants:mat(0x242c35),rubber:mat(0x15191d),chrome:mat(0xb7c2c5,.25,.7)};
+function add(g,m,x=0,y=0,z=0,parent=scene){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function box(w,h,d,m,x,y,z,p=scene){return add(new THREE.BoxGeometry(w,h,d),m,x,y,z,p)}
+function cyl(rt,rb,h,m,x,y,z,n=12,p=scene){return add(new THREE.CylinderGeometry(rt,rb,h,n),m,x,y,z,p)}
+function sphere(r,m,x,y,z,p=scene){return add(new THREE.SphereGeometry(r,16,12),m,x,y,z,p)}
+function coll(x,z,w,d){colliders.push({a:x-w/2,b:x+w/2,c:z-d/2,d:z+d/2})}
+function building(x,z,w,d,h,style=0){
+ const palettes=[0xc2b9a7,0x9ba8a9,0xb4b9b3,0x8b9ba0,0xc9bda8,0x788b91];
+ const wall=mat(palettes[style%palettes.length]),b=box(w,h,d,wall,x,h/2,z);
+ box(w+.5,.45,d+.5,mat(0xd3cec1),x,h+.2,z);
+ // repeated facade glazing as a few efficient strips
+ for(let y=3;y<h-1;y+=3.3){box(w*.84,.95,.08,M.glass,x,y,z+d/2+.06);box(w*.84,.12,.16,mat(0xd5d0c4),x,y-.58,z+d/2+.12)}
+ for(let xx=-w/2+1.2;xx<w/2;xx+=3.1)box(.12,h-2,.12,mat(0xd0c8b9),x+xx,h/2,z+d/2+.13);
+ // ground-floor retail
+ box(w*.78,2.7,.16,mat(0x315563,.28,.25),x,1.45,z+d/2+.14);
+ coll(x,z,w+1,d+1);
+ return b;
 }
-function resize(){if(!renderer||!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight)}
-function animate(){requestAnimationFrame(animate);const dt=Math.min(.04,clock.getDelta());const forward=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),right=new THREE.Vector3(forward.z,0,-forward.x);const move=forward.multiplyScalar(-joyY).add(right.multiplyScalar(joyX));if(move.lengthSq()>1)move.normalize();const speed=run?12:6;player.position.addScaledVector(move,speed*dt);if(move.lengthSq()>.001)player.rotation.y=Math.atan2(move.x,move.z);const walking=move.lengthSq()>.001?Math.sin(performance.now()*.012)*(run?1.25:1):0;for(const limb of limbs){limb.pivot.rotation.x=walking*Math.cos(limb.phase)*(limb.arm?-.65:.8);}if(player.position.y>0||jumpV>0){jumpV-=18*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0)jumpV=0;}const target=player.position;const h=9*Math.cos(pitch);const desired=new THREE.Vector3(target.x-Math.sin(yaw)*h,target.y+3+9*Math.sin(pitch),target.z-Math.cos(yaw)*h);camera.position.lerp(desired,.12);camera.lookAt(target.x,target.y+1,target.z);renderer.render(scene,camera);document.querySelector('#speed').textContent='速度 '+Math.round(move.length()*speed*3.6)+' km/h'}
-const clock=new THREE.Clock();
-document.querySelector('#play').onclick=()=>document.querySelector('#start').style.display='none';
-document.querySelector('#jump').onclick=()=>{if(player&&player.position.y===0)jumpV=8};
-document.querySelector('#run').onpointerdown=()=>run=true;document.querySelector('#run').onpointerup=document.querySelector('#run').onpointercancel=()=>run=false;
-document.querySelector('#reset').onclick=()=>{player.position.set(0,0,8);yaw=0;pitch=.35};
-document.querySelector('#view').onclick=()=>{yaw=0;pitch=.35};
-const stick=document.querySelector('#stick'),knob=document.querySelector('#knob');
-function moveStick(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy,L=Math.hypot(dx,dy),m=43;if(L>m){dx*=m/L;dy*=m/L}joyX=dx/m;joyY=dy/m;knob.style.transform='translate('+dx+'px,'+dy+'px)'}
-stick.addEventListener('pointerdown',e=>{active=e.pointerId;stick.setPointerCapture(e.pointerId);moveStick(e)});
-stick.addEventListener('pointermove',e=>{if(active===e.pointerId)moveStick(e)});
-function release(){active=null;joyX=joyY=0;knob.style.transform='translate(0,0)'}
-stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
-let dragging=false;rendererPointer();
-function rendererPointer(){game.addEventListener('pointerdown',e=>{if(e.target!==renderer?.domElement)return;dragging=true;lastX=e.clientX;lastY=e.clientY;});game.addEventListener('pointermove',e=>{if(!dragging)return;yaw-=(e.clientX-lastX)*.008;pitch=THREE.MathUtils.clamp(pitch-(e.clientY-lastY)*.005,.05,.85);lastX=e.clientX;lastY=e.clientY});game.addEventListener('pointerup',()=>dragging=false);game.addEventListener('pointercancel',()=>dragging=false)}
-window.addEventListener('resize',resize);window.addEventListener('error',e=>{status.textContent='错误：'+e.message});window.addEventListener('unhandledrejection',e=>{status.textContent='模块错误：'+String(e.reason)});
-try{boot()}catch(e){status.textContent='3D 启动失败：'+e.message}
+function landmarkTower(x,z,h,rb,rt,color,twist=0){
+ const levels=54,verts=[],idx=[];
+ for(let j=0;j<=levels;j++){let t=j/levels,r=rb*(1-t)+rt*t,a0=t*twist;for(let k=0;k<16;k++){let a=k*Math.PI*2/16+a0;verts.push(Math.cos(a)*r,t*h,Math.sin(a)*r)}}
+ for(let j=0;j<levels;j++)for(let k=0;k<16;k++){let a=j*16+k,b=j*16+(k+1)%16,c=(j+1)*16+k,d=(j+1)*16+(k+1)%16;idx.push(a,b,c,b,d,c)}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setIndex(idx);g.computeVertexNormals();
+ add(g,new THREE.MeshStandardMaterial({color,metalness:.56,roughness:.24,side:THREE.DoubleSide}),x,0,z);
+ // subtle horizontal floor bands
+ for(let y=12;y<h;y+=12){let t=y/h,r=rb*(1-t)+rt*t;const ring=add(new THREE.TorusGeometry(r,.12,4,40),M.chrome,x,y,z);ring.rotation.x=Math.PI/2}
+ coll(x,z,rb*2+5,rb*2+5);
+}
+function orientalPearl(x,z){
+ cyl(1.7,2.7,100,M.chrome,x,50,z,18);
+ for(const [y,r] of [[30,9],[68,6.3]]){sphere(r,mat(0xc5d2d2,.22,.45),x,y,z);const ring=add(new THREE.TorusGeometry(r*1.04,.38,8,48),mat(0xb7c1c1,.28,.55),x,y,z);ring.rotation.x=Math.PI/2}
+ cyl(.45,.8,38,M.chrome,x,121,z,16);cyl(.12,.35,24,M.chrome,x,152,z,12);
+ coll(x,z,22,22);
+}
+function makeShanghai(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x91c3e1);scene.fog=new THREE.Fog(0xa8c9d9,180,620);
+ camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.1,850);
+ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;game.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xdff2ff,0x65705d,1.45));
+ const sun=new THREE.DirectionalLight(0xffedcf,2.0);sun.position.set(-130,210,100);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-240;sun.shadow.camera.right=240;sun.shadow.camera.top=240;sun.shadow.camera.bottom=-240;scene.add(sun);
+ box(CFG.map,.7,CFG.map,mat(0x78846d),0,-.5,0);
+ // Huangpu river across east-west, separating Pudong and Puxi
+ const water=add(new THREE.PlaneGeometry(620,112,64,40),new THREE.MeshPhysicalMaterial({color:0x347f9b,metalness:.48,roughness:.18,clearcoat:.9}),0,.03,0);water.rotation.x=-Math.PI/2;water.userData.water=true;
+ box(620,.8,4,mat(0x9c9d95),0,.15,-59);box(620,.8,4,mat(0x9c9d95),0,.15,59);
+ // Bund promenade and historic Puxi skyline
+ box(620,.35,46,mat(0xb7b1a5),-105,.02,0);
+ for(let i=0;i<13;i++){let z=-260+i*43,w=25+(i%3)*5,h=25+(i%4)*8,d=28;let x=-135;building(x,z,w,d,h,i);box(w+1,.8,d+1,mat(0x776f64),x,h+.35,z);
+   for(let y=5;y<h-3;y+=5)for(let xx=-w/2+3;xx<w/2;xx+=5)box(1.35,2.1,.12,M.darkglass,x+xx,y,z+d/2+.18);
+ }
+ // Waibaidu bridge-inspired crossing and riverside lamps
+ for(let z=-250;z<280;z+=25){cyl(.09,.14,6,mat(0x303638),-82,3,z,8);box(1.6,.1,.1,mat(0x303638),-82.8,5.8,z);sphere(.18,mat(0xffe8bd),-83.5,5.7,z)}
+ // Pudong central financial district
+ for(let i=0;i<28;i++){let x=83+(i%7)*25,z=-225+Math.floor(i/7)*105;if(Math.abs(z)<70)z+=90;let h=22+(i*17%45),w=14+(i%3)*5,d=17+(i%2)*5;building(x,z,w,d,h,i+2)}
+ // Iconic skyline, clearly separated in view
+ landmarkTower(116,-4,190,16,6.2,0x83aab5,.65); // Shanghai Tower
+ // Shanghai World Financial Center trapezoid aperture
+ const wfcX=80,wfcZ=15,wfcH=154;const shape=new THREE.Shape();shape.moveTo(-12,0);shape.lineTo(12,0);shape.lineTo(7.5,wfcH);shape.lineTo(-7.5,wfcH);shape.closePath();const wfc=add(new THREE.ExtrudeGeometry(shape,{depth:17,bevelEnabled:false}),mat(0x8eaab4,.24,.55),wfcX,wfcH/2,wfcZ-8.5);box(12,11,18,mat(0x294a5b),wfcX,wfcH-10,wfcZ);coll(wfcX,wfcZ,30,26);
+ // Jin Mao stepped silhouette
+ for(let i=0;i<18;i++){let s=18*(1-i/18*.64),y=(i+.5)*7.2;box(s,6.9,s*.82,mat(i%2?0x879da4:0xb4c1bd),52,y,-9);box(s+1,.22,s*.82+1,M.chrome,52,y+3.4,-9)}coll(52,-9,24,24);
+ orientalPearl(157,36);
+ // City blocks and grid roads, leave river channel clear
+ const roads=[];for(let z=-290;z<=290;z+=CFG.block+CFG.road)roads.push(z);
+ for(const z of roads){box(CFG.map,.12,CFG.road,M.road,0,-.04,z);for(let x=-300;x<300;x+=20)box(7,.025,.16,M.line,x,.04,z)}
+ for(let x=-290;x<=290;x+=CFG.block+CFG.road){box(CFG.road,.12,CFG.map,M.road,x,-.04,0);for(let z=-300;z<300;z+=20)box(.16,.025,7,M.line,x,.04,z)}
+ // Shanghai elevated expressway ring segment
+ box(11,.9,390,mat(0x777e7f),-24,8,115);box(10,.16,390,M.road,-24,8.55,115);
+ for(let z=-70;z<310;z+=28){cyl(.48,.72,8,mat(0x888d8b),-28,4,z,10);cyl(.48,.72,8,mat(0x888d8b),-20,4,z,10)}
+ // roadside tree avenues, instanced
+ const trunkGeo=new THREE.CylinderGeometry(.16,.23,2.7,7),crownGeo=new THREE.IcosahedronGeometry(1.55,1),trees=[];
+ for(let i=0;i<CFG.trees;i++){let x=(Math.random()-.5)*550,z=(Math.random()-.5)*550;if(Math.abs(x)<72||Math.abs(x+105)<40)continue;if(Math.abs(x%56)<10||Math.abs(z%56)<10)trees.push({x,z,y:1.35,s:.8+Math.random()*.6})}
+ const trunks=new THREE.InstancedMesh(trunkGeo,mat(0x69513b),trees.length),crowns=new THREE.InstancedMesh(crownGeo,M.green,trees.length),dummy=new THREE.Object3D();
+ trees.forEach((t,i)=>{dummy.position.set(t.x,1.35,t.z);dummy.scale.setScalar(t.s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=3.4;dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix)});scene.add(trunks,crowns);
+ // Street lamps
+ for(let z=-270;z<280;z+=42){for(const x of [-25,25]){cyl(.1,.15,6,mat(0x343b3d),x,3,z,8);box(1.8,.1,.1,mat(0x343b3d),x+.7,5.8,z);sphere(.16,mat(0xffe9c2),x+1.45,5.7,z)}}
+ // simple cloud banks
+ for(let i=0;i<26;i++){const g=new THREE.Group();g.position.set((Math.random()-.5)*600,90+Math.random()*35,(Math.random()-.5)*600);for(let j=0;j<5;j++){let p=sphere(5+Math.random()*5,mat(0xffffff), (Math.random()-.5)*15,(Math.random()-.5)*3,(Math.random()-.5)*10,g);p.scale.y=.48}scene.add(g)}
+ // player model, third-person
+ player=new THREE.Group();const body=new THREE.Group();player.add(body);
+ const jacket=mat(0x273d50),trousers=mat(0x202a34),skin=mat(0xc28b6b),hair=mat(0x211d1a),shoe=mat(0x11171d);
+ add(new THREE.CapsuleGeometry(.32,.68,6,12),jacket,0,1.28,0,body);
+ add(new THREE.SphereGeometry(.245,18,14),skin,0,2.04,0,body);
+ add(new THREE.SphereGeometry(.25,16,10,0,Math.PI*2,0,Math.PI*.55),hair,0,2.12,-.025,body);
+ const limbs=[];for(const s of [-1,1]){const leg=new THREE.Group();leg.position.set(s*.17,.88,0);body.add(leg);add(new THREE.CapsuleGeometry(.12,.58,5,9),trousers,0,-.31,0,leg);add(new THREE.BoxGeometry(.24,.13,.38),shoe,0,-.65,.08,leg);limbs.push({o:leg,p:s<0?0:Math.PI});const arm=new THREE.Group();arm.position.set(s*.39,1.58,0);body.add(arm);add(new THREE.CapsuleGeometry(.105,.5,5,9),jacket,0,-.27,0,arm);add(new THREE.SphereGeometry(.08,8,8),skin,0,-.55,0,arm);limbs.push({o:arm,p:s>0?0:Math.PI,arm:true})}
+ scene.add(player);player.position.set(-92,0,82);yaw=Math.PI/2;pitch=.18;
+ // traffic cars
+ const carPalette=[0xe5e2d8,0x202d3a,0x9e3329,0x687a83,0xc4a05e,0xf0f0eb];
+ function createCar(index,playerCar=false){const g=new THREE.Group(),paint=mat(playerCar?0x202a35:carPalette[index%carPalette.length],.3,.42);
+  box(2.05,.7,4.25,paint,0,.72,0,g);box(1.7,.7,2.1,M.glass,0,1.38,-.12,g);box(1.85,.12,.9,paint,0,1.08,1.48,g);
+  for(const sx of [-1,1])for(const sz of [-1,1]){const t=cyl(.37,.37,.2,M.rubber,sx*1.03,.38,sz*1.32,12,g);t.rotation.z=Math.PI/2}
+  for(const sx of [-.65,.65]){box(.4,.2,.06,mat(0xffe5bd,.3),sx,.75,2.14,g);box(.4,.2,.06,mat(0xd33c2f,.3),sx,.75,-2.14,g)}
+  scene.add(g);return g;
+ }
+ car=createCar(0,true);car.position.set(-92,.08,75);car.visible=true;
+ for(let i=0;i<CFG.cars;i++){let g=createCar(i+1);traffic.push({g,axis:i%2?'x':'z',lane:i%2?(-168+(i%5)*70):(-210+(i%7)*65),offset:(i%3-1)*2.2,speed:7+(i%5)*2.2,phase:i*37,dir:i%4<2?1:-1})}
+ // NPC walkers
+ for(let i=0;i<CFG.npc;i++){const g=new THREE.Group(),shirt=mat([0x3d566e,0xa65a42,0x536b4d,0xd1c4a9][i%4]);add(new THREE.CapsuleGeometry(.23,.5,4,8),shirt,0,1.05,0,g);add(new THREE.SphereGeometry(.17,12,10),skin,0,1.75,0,g);const legs=[];for(const s of [-1,1])legs.push(add(new THREE.CapsuleGeometry(.09,.42,4,7),trousers,s*.11,.46,0,g));scene.add(g);npcs.push({g,legs,x:-100+(i%4)*7,z:-170+i*19,phase:i*.7,axis:i%2?'x':'z'})}
+}
+function blocked(x,z){if(Math.abs(x)>CFG.map/2-2||Math.abs(z)>CFG.map/2-2)return true;if(Math.abs(x)<58)return true;for(const b of colliders)if(x+.65>b.a&&x-.65<b.b&&z+.65>b.c&&z-.65<b.d)return true;return false}
+function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(f.z,0,-f.x);const m=f.clone().multiplyScalar(-joyY).add(r.multiplyScalar(joyX));if(keys.KeyW||keys.ArrowUp)m.add(f);if(keys.KeyS||keys.ArrowDown)m.sub(f);if(keys.KeyD||keys.ArrowRight)m.add(r);if(keys.KeyA||keys.ArrowLeft)m.sub(r);if(m.lengthSq()>1)m.normalize();const speed=run?CFG.sprint:CFG.walk;if(m.lengthSq()>.001){const step=m.multiplyScalar(speed*dt),nx=player.position.x+step.x,nz=player.position.z+step.z;if(!blocked(nx,player.position.z))player.position.x=nx;if(!blocked(player.position.x,nz))player.position.z=nz;player.rotation.y=Math.atan2(step.x,step.z);const walk=Math.sin(elapsed*10)*(run?1.25:1);player.userData.limbs?.forEach(()=>{});for(const [i,o] of player.userData.limbs.entries())o.rotation.x=walk*(i%2?-.8:.8)}else for(const o of player.userData.limbs||[])o.rotation.x*=.8;
+ if(player.position.y>0||jumpV>0){jumpV-=20*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0)jumpV=0}
+}
+function updateCar(dt){const throttle=(keys.KeyW||joyY<-.2)?1:((keys.KeyS||joyY>.2)?-1:0);const steer=(keys.KeyA||joyX<-.2)?1:((keys.KeyD||joyX>.2)?-1:0);carSpeed+=throttle*18*dt;carSpeed*=Math.pow(.985,dt*60);carSpeed=THREE.MathUtils.clamp(carSpeed,-10,CFG.drive);car.rotation.y+=steer*dt*(.9+Math.abs(carSpeed)*.045)*Math.sign(carSpeed||1);const nx=car.position.x+Math.sin(car.rotation.y)*carSpeed*dt,nz=car.position.z+Math.cos(car.rotation.y)*carSpeed*dt;if(!blocked(nx,nz)){car.position.x=nx;car.position.z=nz}else carSpeed*=.25;player.position.copy(car.position);player.position.y=.05;player.rotation.y=car.rotation.y;$('#speed').textContent=Math.round(Math.abs(carSpeed)*3.6)+' km/h'}
+function cameraUpdate(dt){const target=driving?car.position:player.position;const dist=driving?10:7.5,height=driving?4.1:3.2;const desired=new THREE.Vector3(target.x-Math.sin(yaw)*dist,target.y+height+Math.sin(pitch)*4,target.z-Math.cos(yaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+(driving?1.2:1.35),target.z)}
+function updateWorld(dt){elapsed+=dt;for(const v of traffic){const t=(elapsed*v.speed+v.phase)%620-310;if(v.axis==='z'){v.g.position.set(v.lane+v.offset,.08,t*v.dir);v.g.rotation.y=v.dir>0?Math.PI:0}else{v.g.position.set(t*v.dir,.08,v.lane+v.offset);v.g.rotation.y=v.dir>0?Math.PI/2:-Math.PI/2}}
+ for(const n of npcs){n.phase+=dt*.9;const d=Math.sin(n.phase)*7;n.g.position.set(n.x+(n.axis==='x'?d:0),0,n.z+(n.axis==='z'?d:0));n.legs[0].rotation.x=Math.sin(n.phase*6)*.5;n.legs[1].rotation.x=-Math.sin(n.phase*6)*.5}
+}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(driving)updateCar(dt);else movePlayer(dt);updateWorld(dt);cameraUpdate(dt);renderer.render(scene,camera);if(!driving)$('#speed').textContent=run?'奔跑':'步行'}
+function action(){if(!player)return;if(!driving){if(player.position.distanceTo(car.position)<5){driving=true;player.visible=false;carSpeed=0;status.textContent='驾驶中 · W/S 或摇杆前后 · A/D 转向';$('#action').textContent='下车'}}else{driving=false;player.visible=true;player.position.set(car.position.x+3,0,car.position.z);carSpeed=0;status.textContent='上海 · 黄浦江沿岸自由探索';$('#action').textContent='上车'}}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight)}
+$('#play').onclick=()=>$('#start').style.display='none';$('#action').onclick=action;$('#jump').onclick=()=>{if(!driving&&onGround){jumpV=8;onGround=false}};$('#run').onpointerdown=()=>run=true;$('#run').onpointerup=$('#run').onpointercancel=()=>run=false;$('#reset').onclick=()=>{if(driving){driving=false;player.visible=true;$('#action').textContent='上车'}player.position.set(-92,0,82);car.position.set(-92,.08,75);carSpeed=0;yaw=Math.PI/2;pitch=.18};
+const stick=$('#stick'),knob=$('#knob');function stickMove(e){const r=stick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),len=Math.hypot(dx,dy),max=38;if(len>max){dx*=max/len;dy*=max/len}joyX=dx/max;joyY=dy/max;knob.style.transform='translate('+dx+'px,'+dy+'px)'}stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;stick.setPointerCapture(e.pointerId);stickMove(e)});stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e)});function release(){stickId=null;joyX=joyY=0;knob.style.transform='translate(0,0)'}stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
+game.addEventListener('pointerdown',e=>{if(e.target!==renderer.domElement)return;drag=true;lastX=e.clientX;lastY=e.clientY});game.addEventListener('pointermove',e=>{if(!drag)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch-(e.clientY-lastY)*.004,-.18,.72);lastX=e.clientX;lastY=e.clientY});game.addEventListener('pointerup',()=>drag=false);game.addEventListener('pointercancel',()=>drag=false);
+window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')action();if(e.code==='Space'&&!driving&&onGround){jumpV=8;onGround=false}});window.addEventListener('keyup',e=>keys[e.code]=false);window.addEventListener('blur',()=>Object.keys(keys).forEach(k=>keys[k]=false));window.addEventListener('resize',resize);
+try{makeShanghai();player.userData.limbs=player.children[0].children.filter((_,i)=>i>0);animate()}catch(e){status.textContent='场景启动失败：'+e.message;console.error(e)}
 </script></body></html>
