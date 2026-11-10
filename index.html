@@ -25,19 +25,43 @@ const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
 function boot(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x87b8d0);
  camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,300);
- renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power',failIfMajorPerformanceCaveat:false});
- renderer.setPixelRatio(1);renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';game.appendChild(renderer.domElement);
+ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',failIfMajorPerformanceCaveat:false});
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.domElement.style.touchAction='none';game.appendChild(renderer.domElement);
+ renderer.shadowMap.enabled=false;scene.fog=new THREE.Fog(0x9bb7c4,95,260);
  scene.add(new THREE.HemisphereLight(0xffffff,0x596b55,2));
  const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-20,40,20);scene.add(sun);
- const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,180),mat(0x61765e));ground.rotation.x=-Math.PI/2;ground.position.y=-.06;scene.add(ground);
- const road=new THREE.Mesh(new THREE.BoxGeometry(12,.05,160),mat(0x30363c));road.position.set(0,0,-15);scene.add(road);
- for(let i=-3;i<=3;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(7,8+(i%3)*4,7),mat(i%2?0x9babb0:0xc4b8a5));b.position.set(i*13,4+(i%3)*2,-22-Math.abs(i%2)*12);scene.add(b);}
- player=new THREE.Group();const body=new THREE.Mesh(new THREE.CapsuleGeometry(.45,.9,4,8),mat(0x263c56));body.position.y=1;player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.28,12,10),mat(0xc38b69));head.position.y=1.78;player.add(head);scene.add(player);player.position.set(0,0,8);
+ const ground=new THREE.Mesh(new THREE.PlaneGeometry(520,520),mat(0x65745f));ground.rotation.x=-Math.PI/2;ground.position.y=-.08;scene.add(ground);
+ const roadMat=mat(0x30343a),sideMat=mat(0xb0aa98),lineMat=new THREE.MeshStandardMaterial({color:0xe8d6a0,roughness:.8});
+ const road=new THREE.Mesh(new THREE.BoxGeometry(15,.08,520),roadMat);road.position.set(0,0,-10);scene.add(road);
+ const sidewalkL=new THREE.Mesh(new THREE.BoxGeometry(2,.18,520),sideMat);sidewalkL.position.set(-8.7,.02,-10);scene.add(sidewalkL);
+ const sidewalkR=sidewalkL.clone();sidewalkR.position.x=8.7;scene.add(sidewalkR);
+ for(let z=-250;z<250;z+=18){const dash=new THREE.Mesh(new THREE.BoxGeometry(.18,.025,7),lineMat);dash.position.set(0,.06,z);scene.add(dash);}
+ const facadeColors=[0xb9b1a2,0x9eaaa9,0xc9b89f,0x87999d,0xb5aaa0,0x9a9b91];
+ const windowMats=[mat(0x315064),mat(0x465f6a),new THREE.MeshStandardMaterial({color:0xf0d39a,emissive:0x5b4324,emissiveIntensity:.22,roughness:.5})];
+ function addBuilding(x,z,w,d,h,idx){
+   const base=mat(facadeColors[idx%facadeColors.length]),body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),base);body.position.set(x,h/2,z);scene.add(body);
+   const trim=mat(0xd5cbbb),roof=new THREE.Mesh(new THREE.BoxGeometry(w+.35,.45,d+.35),trim);roof.position.set(x,h+.18,z);scene.add(roof);
+   const front=z+d/2+.035, floors=Math.max(2,Math.floor(h/3.2)), cols=Math.max(2,Math.floor(w/2.6));
+   for(let fy=0;fy<floors;fy++)for(let cx=0;cx<cols;cx++){
+     const ww=new THREE.Mesh(new THREE.BoxGeometry(.95,1.35,.07),windowMats[(idx+fy+cx)%9===0?2:(idx+cx)%2]);ww.position.set(x-w/2+1.35+cx*((w-2.3)/(cols-1)),1.35+fy*((h-2)/(floors)),front);scene.add(ww);
+     const sill=new THREE.Mesh(new THREE.BoxGeometry(1.08,.09,.13),trim);sill.position.set(ww.position.x,ww.position.y-.76,front+.025);scene.add(sill);
+   }
+   const shop=new THREE.Mesh(new THREE.BoxGeometry(w*.82,2.5,.12),new THREE.MeshStandardMaterial({color:0x426b76,metalness:.12,roughness:.25}));shop.position.set(x,1.35,front+.04);scene.add(shop);
+ }
+ for(let side of [-1,1])for(let row=0;row<9;row++){const z=-92+row*23;const w=9+(row%3)*2,d=12+(row%2)*3,h=13+(row%4)*7;addBuilding(side*(12+w/2),z,w,d,h,row+(side>0?2:0));}
+ for(let side of [-1,1])for(let row=0;row<7;row++){const z=-80+row*28;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.25,3,8),mat(0x66503b));trunk.position.set(side*12,1.5,z);scene.add(trunk);const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,12,10),mat(0x356047));crown.position.set(side*12,3.8,z);scene.add(crown);}
+ player=new THREE.Group();const shirt=mat(0x263c56),pants=mat(0x202a35),skin=mat(0xc38b69),hair=mat(0x25201d);
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.34,.7,6,12),shirt);torso.position.y=1.28;player.add(torso);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.27,20,16),skin);head.position.y=2.02;player.add(head);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.28,16,10,0,Math.PI*2,0,Math.PI*.5),hair);cap.position.y=2.1;player.add(cap);
+ for(const x of [-.19,.19]){const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.58,5,10),pants);leg.position.set(x,.47,0);player.add(leg);const shoe=new THREE.Mesh(new THREE.BoxGeometry(.25,.13,.4),mat(0x111820));shoe.position.set(x,.13,.08);player.add(shoe);}
+ for(const x of [-.43,.43]){const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.52,5,8),shirt);arm.position.set(x,1.28,0);arm.rotation.z=x<0?-.12:.12;player.add(arm);}
+ scene.add(player);player.position.set(0,0,8);
  status.textContent='3D 场景已启动 · 左侧摇杆移动 · 拖动画面转动视角';
  animate();
 }
-function resize(){if(!renderer||!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(1);renderer.setSize(innerWidth,innerHeight)}
-function animate(){requestAnimationFrame(animate);const dt=Math.min(.04,clock.getDelta());const forward=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),right=new THREE.Vector3(forward.z,0,-forward.x);const move=forward.multiplyScalar(-joyY).add(right.multiplyScalar(joyX));if(move.lengthSq()>1)move.normalize();const speed=run?12:6;player.position.addScaledVector(move,speed*dt);if(move.lengthSq()>.001)player.rotation.y=Math.atan2(move.x,move.z);if(player.position.y>0||jumpV>0){jumpV-=18*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0)jumpV=0;}const target=player.position;const h=9*Math.cos(pitch);const desired=new THREE.Vector3(target.x-Math.sin(yaw)*h,target.y+3+9*Math.sin(pitch),target.z-Math.cos(yaw)*h);camera.position.lerp(desired,.12);camera.lookAt(target.x,target.y+1,target.z);renderer.render(scene,camera);document.querySelector('#speed').textContent='速度 '+Math.round(move.length()*speed*3.6)+' km/h'}
+function resize(){if(!renderer||!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight)}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(.04,clock.getDelta());const forward=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),right=new THREE.Vector3(forward.z,0,-forward.x);const move=forward.multiplyScalar(joyY).add(right.multiplyScalar(-joyX));if(move.lengthSq()>1)move.normalize();const speed=run?12:6;player.position.addScaledVector(move,speed*dt);if(move.lengthSq()>.001)player.rotation.y=Math.atan2(move.x,move.z);if(player.position.y>0||jumpV>0){jumpV-=18*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0)jumpV=0;}const target=player.position;const h=9*Math.cos(pitch);const desired=new THREE.Vector3(target.x-Math.sin(yaw)*h,target.y+3+9*Math.sin(pitch),target.z-Math.cos(yaw)*h);camera.position.lerp(desired,.12);camera.lookAt(target.x,target.y+1,target.z);renderer.render(scene,camera);document.querySelector('#speed').textContent='速度 '+Math.round(move.length()*speed*3.6)+' km/h'}
 const clock=new THREE.Clock();
 document.querySelector('#play').onclick=()=>document.querySelector('#start').style.display='none';
 document.querySelector('#jump').onclick=()=>{if(player&&player.position.y===0)jumpV=8};
