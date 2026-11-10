@@ -41,9 +41,18 @@ function building(x,z,w,d,h,style=0){
  // repeated facade glazing as a few efficient strips
  for(let y=3;y<h-1;y+=3.3){box(w*.84,.95,.08,M.glass,x,y,z+d/2+.06);box(w*.84,.12,.16,mat(0xd5d0c4),x,y-.58,z+d/2+.12)}
  for(let xx=-w/2+1.2;xx<w/2;xx+=3.1)box(.12,h-2,.12,mat(0xd0c8b9),x+xx,h/2,z+d/2+.13);
- // ground-floor retail, recessed shopfront and awning
- box(w*.78,2.7,.16,mat(0x315563,.28,.25),x,1.45,z+d/2+.14);
- box(w*.86,.22,.9,mat(0x665d50),x,3.05,z+d/2+.42);
+ // Ground-floor Shanghai street shops: glazed doors, warm interiors, signage and striped awnings.
+ const shopGlass=mat(0x263f49,.22,.28),warmInterior=mat(0xd6b98c,.8,0);
+ box(w*.82,2.65,.18,shopGlass,x,1.42,z+d/2+.16);
+ box(w*.72,2.15,.035,warmInterior,x,1.35,z+d/2+.27);
+ box(w*.88,.42,.22,mat([0x9b4937,0x315c62,0x80633c,0x455b49][style%4]),x,2.95,z+d/2+.28);
+ box(w*.92,.16,1.05,mat(0x62594d),x,3.18,z+d/2+.55);
+ for(let aw=-w*.42;aw<w*.43;aw+=1.1){
+   box(.48,.045,.72,mat(Math.round(aw*10)%2?0xe7dfce:0x9d4938),x+aw,3.12,z+d/2+.86);
+ }
+ // Window mullions, door frame and a few lit display panels.
+ for(let xx=-w*.34;xx<=w*.35;xx+=w*.34)box(.09,2.35,.09,mat(0xaaa99e),x+xx,1.4,z+d/2+.31);
+ box(w*.2,.62,.1,mat(0xe4d8bb,.5),x,2.98,z+d/2+.43);
  // roof parapet, HVAC housings and service core break up the flat silhouette
  box(w+.35,.65,.35,mat(0x8b918f),x,h+.48,z-d/2);
  box(.22,.65,d+.35,mat(0x8b918f),x-w/2,h+.48,z);
@@ -207,14 +216,27 @@ function makeShanghai(){
  }
  car=createCar(0,true);car.position.set(-92,.08,78.5);car.rotation.y=Math.PI/2;car.visible=true;
  for(let i=0;i<CFG.cars;i++){let g=createCar(i+1);traffic.push({g,axis:i%2?'x':'z',lane:i%2?(-168+(i%5)*70):(-210+(i%7)*65),offset:(i%3-1)*2.2,speed:7+(i%5)*2.2,phase:i*37,dir:i%4<2?1:-1})}
- // NPC walkers
- for(let i=0;i<CFG.npc;i++){
-   const g=new THREE.Group(),shirt=mat([0x3d566e,0xa65a42,0x536b4d,0xd1c4a9][i%4]);
-   add(new THREE.CapsuleGeometry(.23,.5,4,8),shirt,0,1.05,0,g);
-   add(new THREE.SphereGeometry(.17,12,10),M.skin,0,1.75,0,g);
-   const legs=[];
-   for(const side of [-1,1])legs.push(add(new THREE.CapsuleGeometry(.09,.42,4,7),M.pants,side*.11,.46,0,g));
-   scene.add(g);npcs.push({g,legs,x:-100+(i%4)*7,z:-170+i*19,phase:i*.7,axis:i%2?'x':'z'});
+ // Parked curbside cars, static and separated from moving traffic lanes.
+ const parkedSpots=[[-145,-92,0],[-145,-36,0],[-145,76,0],[-145,132,0],[-145,188,0],[-190,-92,Math.PI/2],[-190,76,Math.PI/2],[-190,188,Math.PI/2],[205,-92,Math.PI/2],[205,76,Math.PI/2],[205,188,Math.PI/2]];
+ for(let i=0;i<parkedSpots.length;i++){const [x,z,rot]=parkedSpots[i],g=createCar(i+2);g.position.set(x,.08,z);g.rotation.y=rot;g.scale.setScalar(.94);g.userData.parked=true;}
+ // Pedestrians with torso, neck, head, arms and articulated legs.
+ const npcShirts=[0x3d566e,0xa65a42,0x536b4d,0xd1c4a9,0x343b45,0x7c5142];
+ for(let i=0;i<Math.max(CFG.npc,18);i++){
+   const g=new THREE.Group(),shirt=mat(npcShirts[i%npcShirts.length]),limb=mat(0x30343a);
+   add(new THREE.CapsuleGeometry(.22,.52,5,9),shirt,0,1.08,0,g);
+   cyl(.075,.075,.14,M.skin,0,1.48,0,8,g);
+   sphere(.17,M.skin,0,1.68,0,g);
+   // hair cap
+   sphere(.174,mat([0x242321,0x39302b,0x17191b][i%3]),0,1.77,-.025,g).scale.set(1,.48,1);
+   const arms=[],legs=[];
+   for(const side of [-1,1]){
+     const arm=cyl(.075,.09,.52,shirt,side*.3,1.08,0,9,g);arm.rotation.z=side*-.18;arms.push(arm);
+     const hand=sphere(.065,M.skin,side*.32,.79,.015,g);
+     const leg=cyl(.09,.105,.68,M.pants,side*.12,.39,0,9,g);legs.push(leg);
+     box(.19,.11,.32,M.rubber,side*.12,.055,.06,g);
+   }
+   scene.add(g);
+   npcs.push({g,legs,arms,x:-100+(i%6)*6,z:-170+Math.floor(i/6)*31,phase:i*.7,axis:i%2?'x':'z',speed:.7+(i%4)*.12});
  }
 }
 function blocked(x,z){if(Math.abs(x)>CFG.map/2-2||Math.abs(z)>CFG.map/2-2)return true;if(Math.abs(z)<55 && !([-118,8,132].some(bx=>Math.abs(x-bx)<10)))return true;for(const b of colliders)if(x+.65>b.a&&x-.65<b.b&&z+.65>b.c&&z-.65<b.d)return true;return false}
@@ -229,7 +251,7 @@ function updateWorld(dt){elapsed+=dt;if(humanMixer)humanMixer.update(dt);
  for(const vehicle of [car,...traffic.map(v=>v.g)])for(const wheel of (vehicle?.userData.wheels||[]))wheel.rotation.x+=dt*(vehicle===car?carSpeed:13);
  const water=scene.children.find(o=>o.userData.water);if(water){const a=water.geometry.attributes.position,base=water.geometry.userData.base;for(let i=0;i<a.count;i++){const x=base[i*3],z=base[i*3+2];a.array[i*3+1]=Math.sin(x*.035+elapsed*.9)*.22+Math.cos(z*.13+elapsed*1.2)*.11;}a.needsUpdate=true;water.geometry.computeVertexNormals();}
  for(const v of traffic){const t=(elapsed*v.speed+v.phase)%620-310;if(v.axis==='z'){v.g.position.set(v.lane+v.offset,.08,t*v.dir);v.g.rotation.y=v.dir>0?Math.PI:0}else{v.g.position.set(t*v.dir,.08,v.lane+v.offset);v.g.rotation.y=v.dir>0?Math.PI/2:-Math.PI/2}}
- for(const n of npcs){n.phase+=dt*.9;const d=Math.sin(n.phase)*7;n.g.position.set(n.x+(n.axis==='x'?d:0),0,n.z+(n.axis==='z'?d:0));n.legs[0].rotation.x=Math.sin(n.phase*6)*.5;n.legs[1].rotation.x=-Math.sin(n.phase*6)*.5}
+ for(const n of npcs){n.phase+=dt*n.speed;const d=Math.sin(n.phase)*8;n.g.position.set(n.x+(n.axis==='x'?d:0),0,n.z+(n.axis==='z'?d:0));const step=Math.sin(n.phase*6);n.legs[0].rotation.x=step*.48;n.legs[1].rotation.x=-step*.48;n.arms[0].rotation.x=-step*.34;n.arms[1].rotation.x=step*.34;n.g.rotation.y=n.axis==='x'?Math.PI/2:0}
 }
 function animate(){
  requestAnimationFrame(animate);
