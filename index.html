@@ -160,8 +160,13 @@ function makeShanghai(){
      model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.side=THREE.FrontSide;o.material.needsUpdate=true}}});
      const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
      if(!Number.isFinite(size.y)||size.y<0.2||size.y>100){throw new Error('Invalid character model bounds: '+size.y)}
-     const scale=1.8/size.y;model.scale.setScalar(scale);
-     const scaledBounds=new THREE.Box3().setFromObject(model);model.position.y-=scaledBounds.min.y;
+     // Preserve the GLB root's authored scale and normalize its measured world-space height.
+     model.scale.multiplyScalar(1.75/size.y);
+     model.updateMatrixWorld(true);
+     const scaledBounds=new THREE.Box3().setFromObject(model);
+     const finalHeight=scaledBounds.max.y-scaledBounds.min.y;
+     if(!Number.isFinite(finalHeight)||finalHeight<1.6||finalHeight>1.9)throw new Error('Character normalization failed: '+finalHeight);
+     model.position.y-=scaledBounds.min.y;
      if(fallback){player.remove(fallback);fallback=null}
      player.add(model);
      humanMixer=new THREE.AnimationMixer(model);
