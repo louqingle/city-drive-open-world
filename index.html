@@ -155,7 +155,7 @@ function makeShanghai(){
  // Load a publicly hosted rigged humanoid sample asynchronously; failure must never prevent the Shanghai scene from starting.
  import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js').then(({GLTFLoader})=>{
    const humanLoader=new GLTFLoader();
-   humanLoader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CesiumMan/glTF-Binary/CesiumMan.glb',gltf=>{
+   humanLoader.load('https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/CesiumMan/glTF-Binary/CesiumMan.glb',gltf=>{
      const model=gltf.scene;model.rotation.y=Math.PI;
      model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.side=THREE.FrontSide;o.material.needsUpdate=true}}});
      const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
