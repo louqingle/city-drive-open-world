@@ -14,9 +14,10 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 const $=s=>document.querySelector(s), game=$('#game'),status=$('#status');
 const CFG={map:620,block:42,road:14,npc:18,cars:16,trees:95,walk:6.8,sprint:11.5,drive:24};
-let renderer,scene,camera,player,car,characterLimbs=[],driving=false,carSpeed=0,yaw=0,pitch=.22,joyX=0,joyY=0,stickId=null,drag=false,lastX=0,lastY=0,jumpV=0,onGround=true,run=false,elapsed=0;
+let renderer,scene,camera,player,car,humanMixer=null,humanActions={},humanCurrent=null,characterLimbs=[],driving=false,carSpeed=0,yaw=0,pitch=.22,joyX=0,joyY=0,stickId=null,drag=false,lastX=0,lastY=0,jumpV=0,onGround=true,run=false,elapsed=0;
 const clock=new THREE.Clock(),keys={};let npcs=[],traffic=[],colliders=[];
 const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
 const M={road:mat(0x30373c),side:mat(0xbab7ad),line:mat(0xe7dfc9),concrete:mat(0x9da3a2),glass:mat(0x426777,.22,.48),darkglass:mat(0x263f50,.2,.55),green:mat(0x426b4b),skin:mat(0xc38f70),shirt:mat(0x334b64),pants:mat(0x242c35),rubber:mat(0x15191d),chrome:mat(0xb7c2c5,.25,.7)};
@@ -134,57 +135,22 @@ function makeShanghai(){
  }
  // simple cloud banks
  for(let i=0;i<26;i++){const g=new THREE.Group();g.position.set((Math.random()-.5)*600,90+Math.random()*35,(Math.random()-.5)*600);for(let j=0;j<5;j++){let p=sphere(5+Math.random()*5,mat(0xffffff), (Math.random()-.5)*15,(Math.random()-.5)*3,(Math.random()-.5)*10,g);p.scale.y=.48}scene.add(g)}
- // upgraded human character: layered streetwear, anatomical head, hands and articulated limbs
- player=new THREE.Group();const body=new THREE.Group();player.add(body);
- const jacket=mat(0x202b36,.82),jacketLight=mat(0x354657,.78),trousers=mat(0x20252c,.86),skin=mat(0xb98262,.92),skinLight=mat(0xc99270,.9),hair=mat(0x171716,.96),shoe=mat(0x101419,.6),sole=mat(0x777b7d,.8),eyeWhite=mat(0xe4ded4,.5),iris=mat(0x30231e,.5);
- // neck and torso layers
- cyl(.115,.14,.24,skin,0,1.77,0,12,body);
- add(new THREE.CapsuleGeometry(.34,.62,8,16),jacket,0,1.34,0,body);
- add(new THREE.BoxGeometry(.7,.12,.42),jacketLight,0,1.62,.015,body);
- add(new THREE.BoxGeometry(.12,.55,.025),mat(0x111a22),0,1.35,.345,body);
- add(new THREE.BoxGeometry(.045,.42,.018),M.chrome,0,1.36,.365,body);
- // collar, seams, cuffs and waist
- add(new THREE.CylinderGeometry(.15,.19,.11,12),jacketLight,0,1.72,0,body);
- for(const s of [-1,1]){add(new THREE.BoxGeometry(.035,.48,.025),jacketLight,s*.24,1.34,.29,body);add(new THREE.BoxGeometry(.15,.1,.13),jacketLight,s*.29,1.02,.05,body)}
- add(new THREE.BoxGeometry(.59,.12,.36),mat(0x151d25),0,.98,0,body);
- // realistic head silhouette, ears, jaw, nose, eyes, brows and mouth
- add(new THREE.SphereGeometry(.235,24,18),skin,0,2.055,0,body);
- add(new THREE.SphereGeometry(.19,20,14),skinLight,0,1.99,.055,body).scale.set(.92,.72,.78);
- add(new THREE.SphereGeometry(.055,12,10),skin,0,2.005,.218,body);
- add(new THREE.SphereGeometry(.045,12,10),skin,-.239,2.045,0,body);
- add(new THREE.SphereGeometry(.045,12,10),skin,.239,2.045,0,body);
- add(new THREE.ConeGeometry(.052,.13,10),skinLight,0,2.02,.245,body).rotation.x=-.2;
- add(new THREE.BoxGeometry(.095,.018,.025),mat(0x754d40),0,1.955,.231,body);
- for(const s of [-1,1]){
-   add(new THREE.SphereGeometry(.055,12,8),eyeWhite,s*.087,2.075,.198,body);
-   add(new THREE.SphereGeometry(.027,10,8),iris,s*.087,2.075,.244,body);
-   add(new THREE.SphereGeometry(.012,8,6),mat(0x08090b),s*.087,2.075,.263,body);
-   add(new THREE.BoxGeometry(.105,.025,.035),hair,s*.087,2.145,.19,body);
- }
- // short textured hair cap and individual swept locks
- add(new THREE.SphereGeometry(.246,20,12,0,Math.PI*2,0,Math.PI*.53),hair,0,2.145,-.015,body);
- for(let i=0;i<7;i++){const lock=add(new THREE.CapsuleGeometry(.035,.13,4,7),hair,-.17+i*.055,2.205,.07,body);lock.rotation.z=-.35+i*.09}
- // articulated legs, arms, palms and fingers
- characterLimbs=[];
- for(const s of [-1,1]){
-   const leg=new THREE.Group();leg.position.set(s*.17,.99,0);body.add(leg);
-   add(new THREE.CapsuleGeometry(.145,.43,6,12),trousers,0,-.27,0,leg);
-   add(new THREE.CapsuleGeometry(.105,.36,6,12),mat(0x303943),0,-.66,.015,leg);
-   add(new THREE.BoxGeometry(.23,.12,.4),shoe,0,-.91,.105,leg);
-   add(new THREE.BoxGeometry(.235,.035,.39),sole,0,-.972,.105,leg);
-   characterLimbs.push(leg);
-   const arm=new THREE.Group();arm.position.set(s*.39,1.57,0);body.add(arm);
-   add(new THREE.CapsuleGeometry(.125,.31,6,12),jacketLight,0,-.17,0,arm);
-   add(new THREE.CapsuleGeometry(.105,.3,6,12),jacket,0,-.49,0,arm);
-   add(new THREE.CylinderGeometry(.11,.11,.1,12),mat(0x171f27),0,-.35,0,arm);
-   add(new THREE.SphereGeometry(.105,12,10),skinLight,0,-.72,.015,arm);
-   for(let f=0;f<4;f++)add(new THREE.CapsuleGeometry(.018,.07,3,5),skin,s*.0+(f-1.5)*.038,-.79,.045,arm);
-   characterLimbs.push(arm);
- }
- // subtle backpack and shoulder straps for a grounded urban silhouette
- add(new THREE.BoxGeometry(.42,.55,.19),mat(0x252f38),0,1.38,-.245,body);
- for(const s of [-1,1])add(new THREE.BoxGeometry(.07,.5,.06),jacketLight,s*.25,1.4,.18,body);
- scene.add(player);player.position.set(-92,0,82);yaw=Math.PI/2;pitch=.18;
+ // Load a genuine textured, rigged human GLB character (CC0), with walk/run clips.
+ player=new THREE.Group();scene.add(player);player.position.set(-92,0,82);yaw=Math.PI/2;pitch=.18;
+ const humanLoader=new GLTFLoader();
+ humanLoader.load('https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb',gltf=>{
+   const model=gltf.scene;model.rotation.y=Math.PI; // face the game's forward direction
+   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.side=THREE.FrontSide;o.material.needsUpdate=true}}});
+   const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
+   const scale=1.82/Math.max(size.y,0.001);model.scale.setScalar(scale);
+   const scaledBounds=new THREE.Box3().setFromObject(model);model.position.y-=scaledBounds.min.y;
+   player.add(model);
+   humanMixer=new THREE.AnimationMixer(model);
+   for(const clip of gltf.animations){const action=humanMixer.clipAction(clip);humanActions[clip.name.toLowerCase()]=action}
+   const idle=Object.keys(humanActions).find(k=>k.includes('idle'));
+   if(idle){humanCurrent=humanActions[idle];humanCurrent.play()}
+   status.textContent='写实人物模型已加载 · 上海自由探索';
+ },undefined,error=>{console.error('Human GLB load failed',error);status.textContent='真人模型加载失败，检查网络后刷新';});
  // traffic cars
  const carPalette=[0xe5e2d8,0x202d3a,0x9e3329,0x687a83,0xc4a05e,0xf0f0eb];
  function createCar(index,playerCar=false){const g=new THREE.Group(),paint=mat(playerCar?0x202a35:carPalette[index%carPalette.length],.3,.42);
@@ -200,12 +166,13 @@ function makeShanghai(){
  for(let i=0;i<CFG.npc;i++){const g=new THREE.Group(),shirt=mat([0x3d566e,0xa65a42,0x536b4d,0xd1c4a9][i%4]);add(new THREE.CapsuleGeometry(.23,.5,4,8),shirt,0,1.05,0,g);add(new THREE.SphereGeometry(.17,12,10),skin,0,1.75,0,g);const legs=[];for(const s of [-1,1])legs.push(add(new THREE.CapsuleGeometry(.09,.42,4,7),trousers,s*.11,.46,0,g));scene.add(g);npcs.push({g,legs,x:-100+(i%4)*7,z:-170+i*19,phase:i*.7,axis:i%2?'x':'z'})}
 }
 function blocked(x,z){if(Math.abs(x)>CFG.map/2-2||Math.abs(z)>CFG.map/2-2)return true;if(Math.abs(z)<55 && !([-118,8,132].some(bx=>Math.abs(x-bx)<10)))return true;for(const b of colliders)if(x+.65>b.a&&x-.65<b.b&&z+.65>b.c&&z-.65<b.d)return true;return false}
-function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(f.z,0,-f.x);const m=f.clone().multiplyScalar(-joyY).add(r.multiplyScalar(joyX));if(keys.KeyW||keys.ArrowUp)m.add(f);if(keys.KeyS||keys.ArrowDown)m.sub(f);if(keys.KeyD||keys.ArrowRight)m.add(r);if(keys.KeyA||keys.ArrowLeft)m.sub(r);if(m.lengthSq()>1)m.normalize();const speed=run?CFG.sprint:CFG.walk;if(m.lengthSq()>.001){const step=m.multiplyScalar(speed*dt),nx=player.position.x+step.x,nz=player.position.z+step.z;if(!blocked(nx,player.position.z))player.position.x=nx;if(!blocked(player.position.x,nz))player.position.z=nz;player.rotation.y=Math.atan2(step.x,step.z);const walk=Math.sin(elapsed*10)*(run?1.25:1);for(const [i,o] of characterLimbs.entries())o.rotation.x=walk*(i%2?-.8:.8)}else for(const o of characterLimbs)o.rotation.x*=.8;
+function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(f.z,0,-f.x);const m=f.clone().multiplyScalar(-joyY).add(r.multiplyScalar(joyX));if(keys.KeyW||keys.ArrowUp)m.add(f);if(keys.KeyS||keys.ArrowDown)m.sub(f);if(keys.KeyD||keys.ArrowRight)m.add(r);if(keys.KeyA||keys.ArrowLeft)m.sub(r);if(m.lengthSq()>1)m.normalize();const speed=run?CFG.sprint:CFG.walk;if(m.lengthSq()>.001){const step=m.multiplyScalar(speed*dt),nx=player.position.x+step.x,nz=player.position.z+step.z;if(!blocked(nx,player.position.z))player.position.x=nx;if(!blocked(player.position.x,nz))player.position.z=nz;player.rotation.y=Math.atan2(step.x,step.z);setHumanAnimation(run?'run':'walk');const walk=Math.sin(elapsed*10)*(run?1.25:1);for(const [i,o] of characterLimbs.entries())o.rotation.x=walk*(i%2?-.8:.8)}else{setHumanAnimation('idle');for(const o of characterLimbs)o.rotation.x*=.8;}
  if(player.position.y>0||jumpV>0){jumpV-=20*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0){jumpV=0;onGround=true}}
 }
 function updateCar(dt){const throttle=(keys.KeyW||joyY<-.2)?1:((keys.KeyS||joyY>.2)?-1:0);const steer=(keys.KeyA||joyX<-.2)?1:((keys.KeyD||joyX>.2)?-1:0);carSpeed+=throttle*18*dt;carSpeed*=Math.pow(.985,dt*60);carSpeed=THREE.MathUtils.clamp(carSpeed,-10,CFG.drive);car.rotation.y+=steer*dt*(.9+Math.abs(carSpeed)*.045)*Math.sign(carSpeed||1);const nx=car.position.x+Math.sin(car.rotation.y)*carSpeed*dt,nz=car.position.z+Math.cos(car.rotation.y)*carSpeed*dt;if(!blocked(nx,nz)){car.position.x=nx;car.position.z=nz}else carSpeed*=.25;player.position.copy(car.position);player.position.y=.05;player.rotation.y=car.rotation.y;$('#speed').textContent=Math.round(Math.abs(carSpeed)*3.6)+' km/h'}
 function cameraUpdate(dt){const target=driving?car.position:player.position;const dist=driving?10:7.5,height=driving?4.1:3.2;const desired=new THREE.Vector3(target.x-Math.sin(yaw)*dist,target.y+height+Math.sin(pitch)*4,target.z-Math.cos(yaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+(driving?1.2:1.35),target.z)}
-function updateWorld(dt){elapsed+=dt;
+function setHumanAnimation(kind){if(!humanMixer)return;const key=Object.keys(humanActions).find(k=>k.includes(kind));if(!key)return;const next=humanActions[key];if(humanCurrent!==next){next.reset().fadeIn(.18).play();if(humanCurrent)humanCurrent.fadeOut(.18);humanCurrent=next}}
+function updateWorld(dt){elapsed+=dt;if(humanMixer)humanMixer.update(dt);
  // Spin visible wheel hubs on all traffic and the player's vehicle
  for(const vehicle of [car,...traffic.map(v=>v.g)])for(const wheel of (vehicle?.userData.wheels||[]))wheel.rotation.x+=dt*(vehicle===car?carSpeed:13);
  const water=scene.children.find(o=>o.userData.water);if(water){const a=water.geometry.attributes.position,base=water.geometry.userData.base;for(let i=0;i<a.count;i++){const x=base[i*3],z=base[i*3+2];a.array[i*3+1]=Math.sin(x*.035+elapsed*.9)*.22+Math.cos(z*.13+elapsed*1.2)*.11;}a.needsUpdate=true;water.geometry.computeVertexNormals();}
