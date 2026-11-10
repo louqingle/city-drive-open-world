@@ -182,7 +182,14 @@ function makeShanghai(){
  car=createCar(0,true);car.position.set(-92,.08,78.5);car.rotation.y=Math.PI/2;car.visible=true;
  for(let i=0;i<CFG.cars;i++){let g=createCar(i+1);traffic.push({g,axis:i%2?'x':'z',lane:i%2?(-168+(i%5)*70):(-210+(i%7)*65),offset:(i%3-1)*2.2,speed:7+(i%5)*2.2,phase:i*37,dir:i%4<2?1:-1})}
  // NPC walkers
- for(let i=0;i<CFG.npc;i++){const g=new THREE.Group(),shirt=mat([0x3d566e,0xa65a42,0x536b4d,0xd1c4a9][i%4]);add(new THREE.CapsuleGeometry(.23,.5,4,8),shirt,0,1.05,0,g);add(new THREE.SphereGeometry(.17,12,10),skin,0,1.75,0,g);const legs=[];for(const s of [-1,1])legs.push(add(new THREE.CapsuleGeometry(.09,.42,4,7),trousers,s*.11,.46,0,g));scene.add(g);npcs.push({g,legs,x:-100+(i%4)*7,z:-170+i*19,phase:i*.7,axis:i%2?'x':'z'})}
+ for(let i=0;i<CFG.npc;i++){
+   const g=new THREE.Group(),shirt=mat([0x3d566e,0xa65a42,0x536b4d,0xd1c4a9][i%4]);
+   add(new THREE.CapsuleGeometry(.23,.5,4,8),shirt,0,1.05,0,g);
+   add(new THREE.SphereGeometry(.17,12,10),M.skin,0,1.75,0,g);
+   const legs=[];
+   for(const side of [-1,1])legs.push(add(new THREE.CapsuleGeometry(.09,.42,4,7),M.pants,side*.11,.46,0,g));
+   scene.add(g);npcs.push({g,legs,x:-100+(i%4)*7,z:-170+i*19,phase:i*.7,axis:i%2?'x':'z'});
+ }
 }
 function blocked(x,z){if(Math.abs(x)>CFG.map/2-2||Math.abs(z)>CFG.map/2-2)return true;if(Math.abs(z)<55 && !([-118,8,132].some(bx=>Math.abs(x-bx)<10)))return true;for(const b of colliders)if(x+.65>b.a&&x-.65<b.b&&z+.65>b.c&&z-.65<b.d)return true;return false}
 function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw)),r=new THREE.Vector3(f.z,0,-f.x);const m=f.clone().multiplyScalar(-joyY).add(r.multiplyScalar(joyX));if(keys.KeyW||keys.ArrowUp)m.add(f);if(keys.KeyS||keys.ArrowDown)m.sub(f);if(keys.KeyD||keys.ArrowRight)m.add(r);if(keys.KeyA||keys.ArrowLeft)m.sub(r);if(m.lengthSq()>1)m.normalize();const speed=run?CFG.sprint:CFG.walk;if(m.lengthSq()>.001){const step=m.multiplyScalar(speed*dt),nx=player.position.x+step.x,nz=player.position.z+step.z;if(!blocked(nx,player.position.z))player.position.x=nx;if(!blocked(player.position.x,nz))player.position.z=nz;player.rotation.y=Math.atan2(step.x,step.z);setHumanAnimation(run?'run':'walk');const walk=Math.sin(elapsed*10)*(run?1.25:1);for(const [i,o] of characterLimbs.entries())o.rotation.x=walk*(i%2?-.8:.8)}else{setHumanAnimation('idle');for(const o of characterLimbs)o.rotation.x*=.8;}
