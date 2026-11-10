@@ -138,6 +138,16 @@ function makeShanghai(){
  for(let i=0;i<CFG.trees;i++){let x=(Math.random()-.5)*550,z=(Math.random()-.5)*550;if(Math.abs(x)<72||Math.abs(x+105)<40)continue;if(Math.abs(x%56)<10||Math.abs(z%56)<10)trees.push({x,z,y:1.35,s:.8+Math.random()*.6})}
  const trunks=new THREE.InstancedMesh(trunkGeo,mat(0x69513b),trees.length),crowns=new THREE.InstancedMesh(crownGeo,M.green,trees.length),dummy=new THREE.Object3D();
  trees.forEach((t,i)=>{dummy.position.set(t.x,1.35,t.z);dummy.scale.setScalar(t.s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=3.4;dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix)});scene.add(trunks,crowns);
+ // Low shrubs and planted curb beds add layered greenery without hundreds of draw calls.
+ const shrubGeo=new THREE.IcosahedronGeometry(1,1),shrubMat=mat(0x55734a,.96),shrubs=new THREE.InstancedMesh(shrubGeo,shrubMat,96);
+ const bedMat=mat(0x77796b),bedPositions=[];
+ for(let i=0;i<48;i++){const x=-260+(i%8)*72,z=-245+Math.floor(i/8)*96;if(Math.abs(x)<78||Math.abs(z)<62)continue;bedPositions.push([x,z]);}
+ let shrubIndex=0;
+ for(const [x,z] of bedPositions){
+   box(10,.28,2.4,bedMat,x,.14,z);
+   for(let j=0;j<2;j++){dummy.position.set(x-3.2+j*2.2,.82,z);dummy.scale.set(1.25,.72,.72);dummy.updateMatrix();shrubs.setMatrixAt(shrubIndex++,dummy.matrix);}
+ }
+ shrubs.count=shrubIndex;shrubs.instanceMatrix.needsUpdate=true;scene.add(shrubs);
  // Street lamps and signalized intersections
  for(let z=-270;z<280;z+=42){for(const x of [-25,25]){cyl(.1,.15,6,mat(0x343b3d),x,3,z,8);box(1.8,.1,.1,mat(0x343b3d),x+.7,5.8,z);sphere(.16,mat(0xffe9c2),x+1.45,5.7,z)}}
  for(let x=-250;x<=250;x+=56)for(let z=-250;z<=250;z+=56){
