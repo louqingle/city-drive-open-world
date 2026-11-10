@@ -81,7 +81,7 @@ function orientalPearl(x,z){
 }
 function makeShanghai(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc5dc);scene.fog=new THREE.Fog(0xb4c8ce,240,720);
- camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.1,850);
+ camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,850);
  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=true;game.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0xdff2ff,0x65705d,1.45));
@@ -117,6 +117,45 @@ function makeShanghai(){
  }
  // Waibaidu bridge-inspired crossing and riverside lamps
  for(let z=-250;z<280;z+=25){cyl(.09,.14,6,mat(0x303638),-82,3,z,8);box(1.6,.1,.1,mat(0x303638),-82.8,5.8,z);sphere(.18,mat(0xffe8bd),-83.5,5.7,z)}
+ // Dense Puxi street-level neighborhood around the player spawn.
+ // Mid-rise residential and mixed-use buildings create a continuous, readable street canyon.
+ const localBlocks=[
+   [-158,82,28,30,42,0],[-28,82,25,28,36,2],
+   [-158,154,26,30,48,3],[-28,154,30,28,32,4],
+   [-218,118,25,28,39,1],[-88,210,27,30,44,5]
+ ];
+ for(const [bx,bz,bw,bd,bh,style] of localBlocks){
+   building(bx,bz,bw,bd,bh,style);
+   // Dense window bays, lintels, AC compressors and balcony rails on street-facing facades.
+   const facadeZ=bz+bd/2+.24;
+   for(let floor=1;floor<Math.floor(bh/3.2);floor++){
+     const yy=floor*3.2+1.7;
+     for(let bay=-bw/2+2.2;bay<bw/2-1;bay+=3.5){
+       box(2.05,1.55,.10,mat(0x243f50,.22,.35),bx+bay,yy,facadeZ);
+       box(2.18,.10,.16,mat(0xc2c0b6),bx+bay,yy-.84,facadeZ+.04);
+       if((floor+Math.round(bay))%3===0){
+         box(.72,.42,.52,mat(0xd0d0c8),bx+bay+.48,yy-.98,facadeZ+.35);
+         box(.76,.07,.55,mat(0x777f80),bx+bay+.48,yy-.75,facadeZ+.35);
+       }
+     }
+   }
+   // Vertical corner trims and rooftop water tanks make silhouettes less box-like.
+   for(const side of [-1,1])box(.32,bh,.32,mat(0xd0c8b9),bx+side*(bw/2-.25),bh/2,facadeZ+.12);
+   cyl(1.05,1.05,1.7,mat(0x858d8c),bx+bw*.27,bh+.9,bz-bd*.18,12);
+ }
+ // Sidewalk paving and curb stones beside the local retail street.
+ for(const side of [-1,1]){
+   const sx=-93+side*25;
+   box(5,.22,112,mat(0xb8b4a8),sx,.06,112);
+   for(let zz=58;zz<166;zz+=3.2)box(4.85,.035,.055,mat(0x8f918b),sx,.19,zz);
+   for(let zz=58;zz<166;zz+=5)box(.22,.32,1.2,mat(0x96958c),sx-side*2.4,.18,zz);
+ }
+ // Street-level shop signs and warm light boxes along the new neighborhood.
+ for(let i=0;i<8;i++){
+   const bx=-158+(i%2)*130,bz=66+Math.floor(i/2)*25;
+   box(7,.72,.18,mat([0x9b4937,0x315c62,0x80633c,0x455b49][i%4]),bx,3.45,bz+15.3);
+   box(6.6,.12,.24,mat(0xe4d5b6,.35),bx,3.45,bz+15.45);
+ }
  // Pudong central financial district
  for(let i=0;i<28;i++){let x=83+(i%7)*25,z=-225+Math.floor(i/7)*105;if(Math.abs(z)<70)z+=90;let h=22+(i*17%45),w=14+(i%3)*5,d=17+(i%2)*5;building(x,z,w,d,h,i+2)}
  // Iconic skyline, clearly separated in view
@@ -254,7 +293,7 @@ function movePlayer(dt){const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw))
  if(player.position.y>0||jumpV>0){jumpV-=20*dt;player.position.y=Math.max(0,player.position.y+jumpV*dt);if(player.position.y===0){jumpV=0;onGround=true}}
 }
 function updateCar(dt){const throttle=(keys.KeyW||joyY<-.2)?1:((keys.KeyS||joyY>.2)?-1:0);const steer=(keys.KeyA||joyX<-.2)?1:((keys.KeyD||joyX>.2)?-1:0);carSpeed+=throttle*18*dt;carSpeed*=Math.pow(.985,dt*60);carSpeed=THREE.MathUtils.clamp(carSpeed,-10,CFG.drive);car.rotation.y+=steer*dt*(.9+Math.abs(carSpeed)*.045)*Math.sign(carSpeed||1);const nx=car.position.x+Math.sin(car.rotation.y)*carSpeed*dt,nz=car.position.z+Math.cos(car.rotation.y)*carSpeed*dt;if(!blocked(nx,nz)){car.position.x=nx;car.position.z=nz}else carSpeed*=.25;player.position.copy(car.position);player.position.y=.05;player.rotation.y=car.rotation.y;$('#speed').textContent=Math.round(Math.abs(carSpeed)*3.6)+' km/h'}
-function cameraUpdate(dt){const target=driving?car.position:player.position;const dist=driving?8.5:4.9,height=driving?3.4:2.25;const desired=new THREE.Vector3(target.x-Math.sin(yaw)*dist,target.y+height+Math.sin(pitch)*2.2,target.z-Math.cos(yaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+(driving?1.05:1.0),target.z)}
+function cameraUpdate(dt){const target=driving?car.position:player.position;const dist=driving?7.2:3.45,height=driving?2.9:1.72;const desired=new THREE.Vector3(target.x-Math.sin(yaw)*dist,target.y+height+Math.sin(pitch)*1.5,target.z-Math.cos(yaw)*dist);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+(driving?.95:.95),target.z)}
 function setHumanAnimation(kind){if(!humanMixer)return;const key=Object.keys(humanActions).find(k=>k.includes(kind));if(!key)return;const next=humanActions[key];if(humanCurrent!==next){next.reset().fadeIn(.18).play();if(humanCurrent)humanCurrent.fadeOut(.18);humanCurrent=next}}
 function updateWorld(dt){elapsed+=dt;if(humanMixer)humanMixer.update(dt);
  // Spin visible wheel hubs on all traffic and the player's vehicle
