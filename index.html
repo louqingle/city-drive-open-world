@@ -20,6 +20,15 @@ let renderer,scene,camera,player,car,humanMixer=null,humanActions={},humanCurren
 const clock=new THREE.Clock(),keys={};let npcs=[],traffic=[],colliders=[];
 const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
 const M={road:mat(0x30373c),side:mat(0xbab7ad),line:mat(0xe7dfc9),concrete:mat(0x9da3a2),glass:mat(0x426777,.22,.48),darkglass:mat(0x263f50,.2,.55),green:mat(0x426b4b),skin:mat(0xc38f70),shirt:mat(0x334b64),pants:mat(0x242c35),rubber:mat(0x15191d),chrome:mat(0xb7c2c5,.25,.7)};
+ // Procedural asphalt grain: generated locally, no external texture download.
+ const asphaltCanvas=document.createElement('canvas');asphaltCanvas.width=256;asphaltCanvas.height=256;
+ const asphaltCtx=asphaltCanvas.getContext('2d');const asphaltPixels=asphaltCtx.createImageData(256,256);
+ for(let i=0;i<asphaltPixels.data.length;i+=4){const n=25+Math.random()*27;asphaltPixels.data[i]=n;asphaltPixels.data[i+1]=n+2;asphaltPixels.data[i+2]=n+4;asphaltPixels.data[i+3]=255}
+ asphaltCtx.putImageData(asphaltPixels,0,0);
+ const asphaltTexture=new THREE.CanvasTexture(asphaltCanvas);asphaltTexture.wrapS=asphaltTexture.wrapT=THREE.RepeatWrapping;asphaltTexture.repeat.set(3,3);asphaltTexture.colorSpace=THREE.SRGBColorSpace;
+ M.road.map=asphaltTexture;M.road.color.setHex(0x9ca1a3);M.road.roughness=.96;M.road.needsUpdate=true;
+ M.side.roughness=.9;M.concrete.roughness=.94;
+
 function add(g,m,x=0,y=0,z=0,parent=scene){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 function box(w,h,d,m,x,y,z,p=scene){return add(new THREE.BoxGeometry(w,h,d),m,x,y,z,p)}
 function cyl(rt,rb,h,m,x,y,z,n=12,p=scene){return add(new THREE.CylinderGeometry(rt,rb,h,n),m,x,y,z,p)}
@@ -62,15 +71,15 @@ function orientalPearl(x,z){
  coll(x,z,22,22);
 }
 function makeShanghai(){
- scene=new THREE.Scene();scene.background=new THREE.Color(0x91c3e1);scene.fog=new THREE.Fog(0xa8c9d9,180,620);
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc5dc);scene.fog=new THREE.Fog(0xb4c8ce,240,720);
  camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.1,850);
  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;game.appendChild(renderer.domElement);
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=true;game.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0xdff2ff,0x65705d,1.45));
  const sun=new THREE.DirectionalLight(0xffedcf,2.0);sun.position.set(-130,210,100);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-240;sun.shadow.camera.right=240;sun.shadow.camera.top=240;sun.shadow.camera.bottom=-240;scene.add(sun);
  box(CFG.map,.7,CFG.map,mat(0x78846d),0,-.5,0);
  // Huangpu river across east-west, separating Pudong and Puxi
- const water=add(new THREE.PlaneGeometry(620,112,100,40),new THREE.MeshPhysicalMaterial({color:0x347f9b,metalness:.42,roughness:.2,clearcoat:.95,clearcoatRoughness:.12}),0,.03,0);water.rotation.x=-Math.PI/2;water.userData.water=true;water.geometry.userData.base=water.geometry.attributes.position.array.slice();
+ const water=add(new THREE.PlaneGeometry(620,112,100,40),new THREE.MeshPhysicalMaterial({color:0x347f9b,metalness:.08,roughness:.36,clearcoat:.55,clearcoatRoughness:.28}),0,.03,0);water.rotation.x=-Math.PI/2;water.userData.water=true;water.geometry.userData.base=water.geometry.attributes.position.array.slice();
  box(620,.8,4,mat(0x9c9d95),0,.15,-59);box(620,.8,4,mat(0x9c9d95),0,.15,59);
  // Cross-river bridges inspired by Nanpu/Lupu: decks, pylons, cables and guardrails
  for(const bx of [-118,8,132]){
