@@ -71,7 +71,7 @@ function makeShanghai(){
    for(const side of [-1,1]){box(.28,1.1,126,mat(0xb7b9b4),bx+side*8.2,2.35,0);
      for(let zz=-58;zz<=58;zz+=8)box(.12,.55,.12,M.chrome,bx+side*8.2,2.95,zz)}
    for(const zz of [-43,43]){box(1.2,23,1.2,mat(0xaaaead),bx,13,zz);for(let k=-1;k<=1;k++)box(.09,17,Math.sqrt(2),M.chrome,bx+k*4,12,zz).rotation.z=k*.12}
-   coll(bx,0,19,128);
+   // bridge deck remains walkable and drivable; river collision is bypassed at bridge coordinates
  }
  // Bund promenade and historic Puxi skyline
  box(620,.35,46,mat(0xb7b1a5),-105,.02,0);
