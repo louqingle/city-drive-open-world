@@ -23,10 +23,10 @@ const M={road:mat(0x30373c),side:mat(0xbab7ad),line:mat(0xe7dfc9),concrete:mat(0
  // Procedural asphalt grain: generated locally, no external texture download.
  const asphaltCanvas=document.createElement('canvas');asphaltCanvas.width=256;asphaltCanvas.height=256;
  const asphaltCtx=asphaltCanvas.getContext('2d');const asphaltPixels=asphaltCtx.createImageData(256,256);
- for(let i=0;i<asphaltPixels.data.length;i+=4){const n=25+Math.random()*27;asphaltPixels.data[i]=n;asphaltPixels.data[i+1]=n+2;asphaltPixels.data[i+2]=n+4;asphaltPixels.data[i+3]=255}
+ for(let i=0;i<asphaltPixels.data.length;i+=4){const n=112+Math.random()*42;asphaltPixels.data[i]=n;asphaltPixels.data[i+1]=n+2;asphaltPixels.data[i+2]=n+4;asphaltPixels.data[i+3]=255}
  asphaltCtx.putImageData(asphaltPixels,0,0);
  const asphaltTexture=new THREE.CanvasTexture(asphaltCanvas);asphaltTexture.wrapS=asphaltTexture.wrapT=THREE.RepeatWrapping;asphaltTexture.repeat.set(3,3);asphaltTexture.colorSpace=THREE.SRGBColorSpace;
- M.road.map=asphaltTexture;M.road.color.setHex(0x9ca1a3);M.road.roughness=.96;M.road.needsUpdate=true;
+ M.road.map=asphaltTexture;M.road.color.setHex(0xffffff);M.road.roughness=.98;M.road.needsUpdate=true;
  M.side.roughness=.9;M.concrete.roughness=.94;
 
 function add(g,m,x=0,y=0,z=0,parent=scene){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
@@ -53,6 +53,19 @@ function building(x,z,w,d,h,style=0){
  // Window mullions, door frame and a few lit display panels.
  for(let xx=-w*.34;xx<=w*.35;xx+=w*.34)box(.09,2.35,.09,mat(0xaaa99e),x+xx,1.4,z+d/2+.31);
  box(w*.2,.62,.1,mat(0xe4d8bb,.5),x,2.98,z+d/2+.43);
+ // Side and rear elevations also receive window bays, so no camera angle sees a blank slab.
+ for(let yy=4;yy<h-1;yy+=3.3){
+   for(let zz=-d/2+2.2;zz<d/2-1;zz+=3.5){
+     box(.09,1.45,2.05,M.glass,x+w/2+.07,yy,z+zz);
+     box(.16,.12,2.18,mat(0xd5d0c4),x+w/2+.12,yy-.8,z+zz);
+     box(.09,1.45,2.05,M.glass,x-w/2-.07,yy,z+zz);
+     box(.16,.12,2.18,mat(0xd5d0c4),x-w/2-.12,yy-.8,z+zz);
+   }
+   for(let xx=-w/2+2.2;xx<w/2-1;xx+=3.5){
+     box(2.05,1.45,.09,M.glass,x+xx,yy,z-d/2-.07);
+     box(2.18,.12,.16,mat(0xd5d0c4),x+xx,yy-.8,z-d/2-.12);
+   }
+ }
  // roof parapet, HVAC housings and service core break up the flat silhouette
  box(w+.35,.65,.35,mat(0x8b918f),x,h+.48,z-d/2);
  box(.22,.65,d+.35,mat(0x8b918f),x-w/2,h+.48,z);
