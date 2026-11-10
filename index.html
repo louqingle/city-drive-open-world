@@ -14,7 +14,6 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 const $=s=>document.querySelector(s), game=$('#game'),status=$('#status');
 const CFG={map:620,block:42,road:14,npc:18,cars:16,trees:95,walk:6.8,sprint:11.5,drive:24};
 let renderer,scene,camera,player,car,humanMixer=null,humanActions={},humanCurrent=null,characterLimbs=[],driving=false,carSpeed=0,yaw=0,pitch=.22,joyX=0,joyY=0,stickId=null,drag=false,lastX=0,lastY=0,jumpV=0,onGround=true,run=false,elapsed=0;
@@ -135,22 +134,42 @@ function makeShanghai(){
  }
  // simple cloud banks
  for(let i=0;i<26;i++){const g=new THREE.Group();g.position.set((Math.random()-.5)*600,90+Math.random()*35,(Math.random()-.5)*600);for(let j=0;j<5;j++){let p=sphere(5+Math.random()*5,mat(0xffffff), (Math.random()-.5)*15,(Math.random()-.5)*3,(Math.random()-.5)*10,g);p.scale.y=.48}scene.add(g)}
- // Load a genuine textured, rigged human GLB character (CC0), with walk/run clips.
+ // Create the player immediately so the city can render even if the optional character CDN is unavailable.
  player=new THREE.Group();scene.add(player);player.position.set(-92,0,82);yaw=Math.PI/2;pitch=.18;
- const humanLoader=new GLTFLoader();
- humanLoader.load('https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb',gltf=>{
-   const model=gltf.scene;model.rotation.y=Math.PI; // face the game's forward direction
-   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.side=THREE.FrontSide;o.material.needsUpdate=true}}});
-   const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
-   const scale=1.82/Math.max(size.y,0.001);model.scale.setScalar(scale);
-   const scaledBounds=new THREE.Box3().setFromObject(model);model.position.y-=scaledBounds.min.y;
-   player.add(model);
-   humanMixer=new THREE.AnimationMixer(model);
-   for(const clip of gltf.animations){const action=humanMixer.clipAction(clip);humanActions[clip.name.toLowerCase()]=action}
-   const idle=Object.keys(humanActions).find(k=>k.includes('idle'));
-   if(idle){humanCurrent=humanActions[idle];humanCurrent.play()}
-   status.textContent='写实人物模型已加载 · 上海自由探索';
- },undefined,error=>{console.error('Human GLB load failed',error);status.textContent='真人模型加载失败，检查网络后刷新';});
+ let fallback=null;
+ function showFallback(){
+   if(fallback)return;
+   fallback=new THREE.Group();player.add(fallback);
+   const torso=add(new THREE.CapsuleGeometry(.27,.62,5,10),M.shirt,0,1.05,0,fallback);
+   sphere(.22,M.skin,0,1.73,0,fallback);
+   // neck, arms and legs use tapered limbs rather than flat boxes
+   cyl(.105,.12,.18,M.skin,0,1.51,0,10,fallback);
+   for(const side of [-1,1]){
+     const arm=cyl(.085,.105,.64,M.shirt,side*.37,1.08,0,10,fallback);arm.rotation.z=side*-.16;
+     const hand=sphere(.09,M.skin,side*.4,.72,0,fallback);
+     const leg=cyl(.105,.13,.72,M.pants,side*.14,.38,0,10,fallback);
+     box(.22,.12,.36,M.rubber,side*.14,.08,.07,fallback);
+   }
+ }
+ showFallback();
+ // Load the detailed rigged model asynchronously; failure must never prevent the Shanghai scene from starting.
+ import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js').then(({GLTFLoader})=>{
+   const humanLoader=new GLTFLoader();
+   humanLoader.load('https://grab3d.com/dl/man-base-character-rigged/man-base-character-rigged.glb',gltf=>{
+     const model=gltf.scene;model.rotation.y=Math.PI;
+     model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.side=THREE.FrontSide;o.material.needsUpdate=true}}});
+     const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
+     const scale=1.82/Math.max(size.y,0.001);model.scale.setScalar(scale);
+     const scaledBounds=new THREE.Box3().setFromObject(model);model.position.y-=scaledBounds.min.y;
+     if(fallback){player.remove(fallback);fallback=null}
+     player.add(model);
+     humanMixer=new THREE.AnimationMixer(model);
+     for(const clip of gltf.animations){const action=humanMixer.clipAction(clip);humanActions[clip.name.toLowerCase()]=action}
+     const idle=Object.keys(humanActions).find(k=>k.includes('idle'));
+     if(idle){humanCurrent=humanActions[idle];humanCurrent.play()}
+     status.textContent='写实人物模型已加载 · 上海自由探索';
+   },undefined,error=>{console.error('Human GLB load failed',error);showFallback();status.textContent='人物模型暂不可用，已启用备用角色；城市可继续游玩';});
+ }).catch(error=>{console.error('GLTFLoader import failed',error);showFallback();status.textContent='人物资源加载失败，已启用备用角色；城市可继续游玩';});
  // traffic cars
  const carPalette=[0xe5e2d8,0x202d3a,0x9e3329,0x687a83,0xc4a05e,0xf0f0eb];
  function createCar(index,playerCar=false){const g=new THREE.Group(),paint=mat(playerCar?0x202a35:carPalette[index%carPalette.length],.3,.42);
