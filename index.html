@@ -15,7 +15,8 @@
 <script type="module">
 import * as THREE from 'three';
 const $=s=>document.querySelector(s), game=$('#game'),status=$('#status');
-const CFG={map:620,block:42,road:14,npc:18,cars:16,trees:95,walk:6.8,sprint:11.5,drive:24};
+const IS_MOBILE=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||innerWidth<900;
+const CFG={map:620,block:42,road:14,npc:IS_MOBILE?8:18,cars:IS_MOBILE?7:16,trees:IS_MOBILE?48:95,walk:6.8,sprint:11.5,drive:24};
 let renderer,scene,camera,player,car,humanMixer=null,humanActions={},humanCurrent=null,characterLimbs=[],driving=false,carSpeed=0,yaw=0,pitch=.22,joyX=0,joyY=0,stickId=null,drag=false,lastX=0,lastY=0,jumpV=0,onGround=true,run=false,elapsed=0;
 const clock=new THREE.Clock(),keys={};let npcs=[],traffic=[],colliders=[];
 const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
@@ -95,11 +96,11 @@ function orientalPearl(x,z){
 function makeShanghai(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc5dc);scene.fog=new THREE.Fog(0xb4c8ce,240,720);
  camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,850);
- const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||innerWidth<900;
+ const isMobile=IS_MOBILE;
  renderer=new THREE.WebGLRenderer({antialias:!isMobile,powerPreference:'high-performance',alpha:false,stencil:false,depth:true});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,isMobile?1.05:1.35));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,isMobile?.85:1.25));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
  // Dynamic shadow maps are extremely expensive on mobile; retain baked-looking lighting without per-frame shadow rendering.
- renderer.shadowMap.enabled=!isMobile;renderer.shadowMap.type=THREE.BasicShadowMap;renderer.shadowMap.autoUpdate=!isMobile;game.appendChild(renderer.domElement);
+ renderer.shadowMap.enabled=false;renderer.shadowMap.autoUpdate=false;game.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0xdff2ff,0x65705d,1.45));
  const sun=new THREE.DirectionalLight(0xffedcf,2.0);sun.position.set(-130,210,100);sun.castShadow=!isMobile;if(!isMobile){sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;}scene.add(sun);
  box(CFG.map,.7,CFG.map,mat(0x78846d),0,-.5,0);
@@ -361,7 +362,7 @@ function updateWorld(dt){elapsed+=dt;if(humanMixer)humanMixer.update(dt);
 function animate(){
  requestAnimationFrame(animate);
  // Cap mobile rendering near 45 FPS to avoid overheating and unstable frame pacing.
- const now=performance.now();if(now-(animate.lastFrame||0)<22)return;animate.lastFrame=now;
+ const now=performance.now();const frameGap=IS_MOBILE?28:16.7;if(now-(animate.lastFrame||0)<frameGap)return;animate.lastFrame=now;
  const dt=Math.min(clock.getDelta(),.04);
  try{
    if(driving)updateCar(dt);else movePlayer(dt);
@@ -380,10 +381,10 @@ function animate(){
  if(!driving)$('#speed').textContent=run?'奔跑':'步行';
 }
 function action(){if(!player)return;if(!driving){if(player.position.distanceTo(car.position)<5){driving=true;player.visible=false;carSpeed=0;status.textContent='驾驶中 · W/S 或摇杆前后 · A/D 转向';$('#action').textContent='下车'}}else{driving=false;player.visible=true;player.position.set(car.position.x+3,0,car.position.z);carSpeed=0;status.textContent='上海 · 黄浦江沿岸自由探索';$('#action').textContent='上车'}}
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||innerWidth<900;renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.05:1.35));renderer.setSize(innerWidth,innerHeight)}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const mobile=IS_MOBILE;renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?.85:1.25));renderer.setSize(innerWidth,innerHeight)}
 $('#play').onclick=()=>$('#start').style.display='none';$('#action').onclick=action;$('#jump').onclick=()=>{if(!driving&&onGround){jumpV=8;onGround=false}};$('#run').onpointerdown=()=>run=true;$('#run').onpointerup=$('#run').onpointercancel=()=>run=false;$('#reset').onclick=()=>{if(driving){driving=false;player.visible=true;$('#action').textContent='上车'}player.position.set(-92,0,82);car.position.set(-92,.08,78.5);car.rotation.y=Math.PI/2;carSpeed=0;yaw=Math.PI/2;pitch=.18};
 const stick=$('#stick'),knob=$('#knob');function stickMove(e){const r=stick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),len=Math.hypot(dx,dy),max=38;if(len>max){dx*=max/len;dy*=max/len}joyX=dx/max;joyY=dy/max;knob.style.transform='translate('+dx+'px,'+dy+'px)'}stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;stick.setPointerCapture(e.pointerId);stickMove(e)});stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickMove(e)});function release(){stickId=null;joyX=joyY=0;knob.style.transform='translate(0,0)'}stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
 game.addEventListener('pointerdown',e=>{if(e.target!==renderer.domElement)return;drag=true;lastX=e.clientX;lastY=e.clientY});game.addEventListener('pointermove',e=>{if(!drag)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch-(e.clientY-lastY)*.004,-.18,.72);lastX=e.clientX;lastY=e.clientY});game.addEventListener('pointerup',()=>drag=false);game.addEventListener('pointercancel',()=>drag=false);
 window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')action();if(e.code==='Space'&&!driving&&onGround){jumpV=8;onGround=false}});window.addEventListener('keyup',e=>keys[e.code]=false);window.addEventListener('blur',()=>Object.keys(keys).forEach(k=>keys[k]=false));window.addEventListener('resize',resize);
-try{makeShanghai();animate()}catch(e){status.textContent='场景启动失败：'+e.message;console.error(e)}
+try{makeShanghai();resize();animate()}catch(e){status.textContent='场景启动失败：'+(e?.message||e);console.error('Startup error:',e);$('#start').style.display='grid';$('#start .panel p').textContent='启动失败：'+(e?.message||e)+'。请刷新页面重试。'}
 </script></body></html>
